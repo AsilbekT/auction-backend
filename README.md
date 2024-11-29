@@ -57,7 +57,7 @@ auction-backend/
 ```bash
 git clone <repository_url>
 cd auction-backend
-
+```
 
 
 2. Set Up Virtual Environment
@@ -65,12 +65,14 @@ cd auction-backend
 ```bash
 python -m venv venv
 source venv/bin/activate  # On Windows: venv\Scripts\activate
+```
 
 3. Install Dependencies
 
 
 ```bash
 pip install -r requirements.txt
+```
 
 4. Configure the Database
 Update settings.py with your database credentials:
@@ -87,19 +89,20 @@ DATABASES = {
         'PORT': '5432',
     }
 }
-
+```
 
 Apply migrations:
 
 ```bash
 python manage.py makemigrations
 python manage.py migrate
-
+```
 
 5. Run the Server
 
 ```bash
 python manage.py runserver
+```
 
 The API will be accessible at http://127.0.0.1:8000/api/.
 
@@ -134,3 +137,4 @@ The API will be accessible at http://127.0.0.1:8000/api/.
     "year_built": 1995,
     "owner_occupied": true
 }
+```
