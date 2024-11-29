@@ -133,7 +133,7 @@ To authenticate, users must send their credentials to the `/api/token/` endpoint
     "password": "password"
 }
 ```
-## Example Response (POST /api/token/)
+## Example Response (GET /api/token/)
 ```json
 {
     "access": "<access_token>",
