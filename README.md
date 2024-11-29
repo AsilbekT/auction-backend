@@ -123,20 +123,42 @@ The API will be accessible at http://127.0.0.1:8000/api/.
 
 ```json
 {
-    "address": {
-        "full_address": "123 Main St, Springfield, IL",
-        "unit": "Apt 1",
-        "city": "Springfield",
-        "state": "IL",
-        "zip_code": "62701",
-        "county": "Sangamon"
-    },
-    "property_type": "Single Family Home",
-    "beds": 3,
-    "baths": 2,
-    "square_footage": 1200,
-    "lot_size": 0.5,
-    "year_built": 1995,
-    "owner_occupied": true
+    "error": false,
+    "message": "Data fetched successfully",
+    "data": {
+        "error": false,
+        "message": "Data fetched successfully",
+        "data": {
+            "results": [
+                {
+                    "id": 1,
+                    "address": {
+                        "full_address": "123 Main St",
+                        "unit": "Apt 1",
+                        "city": "Springfield",
+                        "state": "IL",
+                        "zip_code": "62704",
+                        "county": "Sangamon"
+                    },
+                    "property_type": "Single Family Home",
+                    "beds": 4,
+                    "baths": 3.0,
+                    "square_footage": 1500,
+                    "lot_size": 0.5,
+                    "year_built": 1990,
+                    "owner_occupied": true,
+                    "additional_details": {
+                        "has_garage": true,
+                        "school_district": "District 11"
+                    }
+                },
+            ],
+            "pagination": {
+                "count": 2,
+                "next": null,
+                "previous": null
+            }
+        }
+    }
 }
 ```
