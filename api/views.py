@@ -1,5 +1,6 @@
 from rest_framework import viewsets, status
 from rest_framework.exceptions import NotFound
+from rest_framework.permissions import IsAuthenticated
 from .models import Property
 from .serializers import PropertySerializer
 from .utils import response_success, response_error, CustomPagination
@@ -8,7 +9,8 @@ class PropertyViewSet(viewsets.ModelViewSet):
     queryset = Property.objects.all()
     serializer_class = PropertySerializer
     pagination_class = CustomPagination
-
+    permission_classes = [IsAuthenticated]
+    
     def list(self, request, *args, **kwargs):
         """
         Handle GET requests for listing properties with pagination.

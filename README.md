@@ -108,18 +108,42 @@ python manage.py runserver
 
 The API will be accessible at http://127.0.0.1:8000/api/.
 
+
 ## API Endpoints
 
-| HTTP Method | Endpoint             | Description                   |
-|-------------|----------------------|-------------------------------|
-| GET         | `/properties/`       | List all properties (paginated) |
-| POST        | `/properties/`       | Create a new property         |
-| GET         | `/properties/<id>/`  | Retrieve a property by ID     |
-| PUT         | `/properties/<id>/`  | Update a property by ID       |
-| DELETE      | `/properties/<id>/`  | Delete a property by ID       |
+| HTTP Method | Endpoint                 | Description                                      |
+|-------------|--------------------------|--------------------------------------------------|
+| POST        | `/api/token/`            | Obtain JWT access and refresh tokens             |
+| POST        | `/api/token/refresh/`    | Refresh the access token using the refresh token |
+| GET         | `/api/properties/`       | List all properties (paginated)                  |
+| POST        | `/api/properties/`       | Create a new property                            |
+| GET         | `/api/properties/<id>/`  | Retrieve a property by ID                        |
+| PUT         | `/api/properties/<id>/`  | Update a property by ID                          |
+| DELETE      | `/api/properties/<id>/`  | Delete a property by ID                          |
+
+## Authentication Workflow
+
+### 1. Obtain Tokens
+To authenticate, users must send their credentials to the `/api/token/` endpoint to receive an access token and a refresh token.
+
+**Request:**
+```json
+{
+    "username": "username",
+    "password": "password"
+}
+```
+## Example Response (POST /api/token/)
+```json
+{
+    "access": "<access_token>",
+    "refresh": "<refresh_token>"
+}
+```
 
 
-## Example Request (POST /properties/)
+## Example Request (POST /api/properties/)
+Authorization: Bearer <access_token>
 
 ```json
 {
@@ -162,3 +186,4 @@ The API will be accessible at http://127.0.0.1:8000/api/.
     }
 }
 ```
+
