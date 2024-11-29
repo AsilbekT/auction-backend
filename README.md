@@ -16,6 +16,7 @@ This project is a Django-based API designed for managing properties, auctions, a
 
 ## Project Structure
 
+```
 auction-backend/
 ├── api/
 │   ├── migrations/
@@ -38,6 +39,7 @@ auction-backend/
 ├── requirements.txt
 ├── venv/
 └── README.md
+```
 
 ---
 
@@ -55,7 +57,7 @@ auction-backend/
 ### 1. Clone the Repository
 
 ```bash
-git clone <repository_url>
+git clone https://github.com/AsilbekT/auction-backend.git
 cd auction-backend
 ```
 
