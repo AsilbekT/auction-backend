@@ -133,7 +133,7 @@ To authenticate, users must send their credentials to the `/api/token/` endpoint
     "password": "password"
 }
 ```
-## Example Response (GET /api/token/)
+## Example Response (POST /api/token/)
 ```json
 {
     "access": "<access_token>",
@@ -142,7 +142,7 @@ To authenticate, users must send their credentials to the `/api/token/` endpoint
 ```
 
 
-## Example Request (POST /api/properties/)
+## Example Request (GET /api/properties/)
 Authorization: Bearer <access_token>
 
 ```json
