@@ -238,8 +238,6 @@ def check_priority(new_source_name, existing_obj, is_new_auction):
     new_priority = priority_names.get(new_source_name.lower(), 0)
 
 
-    print(new_priority, existing_priority, is_new_auction, existing_obj.is_auction)
-
     if new_priority == existing_priority:
         if is_new_auction != existing_obj.is_auction:
             return True, "The priority is the same, but it is a surplus"
@@ -249,3 +247,4 @@ def check_priority(new_source_name, existing_obj, is_new_auction):
         
     return False, "The new object was not created"
     
+
