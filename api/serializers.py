@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Property, Owner, Ownership, LegalProceeding, Auction, SalesInformation, Connection, ContactInformation, Phone, Email, MortgageAndDebt, TaxLien
+from .models import Property, Owner, Ownership, LegalProceeding, Auction, SalesInformation, Connection, ContactInformation, Phone, Email, MortgageAndDebt, TaxLien, DuplicateCheck
 
 
 class PhoneSerializer(serializers.ModelSerializer):
@@ -106,3 +106,10 @@ class FullPropertySerializer(serializers.ModelSerializer):
             'zestimate', 'square_footage', 'ownerships', 'legal_proceedings', 'auctions',
             'mortgages_and_debts', 'tax_liens'
         ]
+
+
+
+class DuplicateCheckSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = DuplicateCheck
+        fields = '__all__'
