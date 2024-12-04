@@ -36,6 +36,8 @@ class Property(models.Model):
             models.Index(fields=['state'], name='state_idx'),
             models.Index(fields=['city', 'state'], name='city_state_idx'),
         ]
+        db_table = 'properties'
+
 
     def __str__(self):
         return str(self.id)
@@ -55,12 +57,17 @@ class Owner(models.Model):
     def __str__(self):
         return str(self.first_name)
     
+    class Meta:
+        db_table = 'owners' 
 
 class Ownership(models.Model):
     owner = models.ForeignKey(Owner, on_delete=models.CASCADE, related_name='ownerships')
     property = models.ForeignKey(Property, on_delete=models.CASCADE, related_name='ownerships')
     percentage_owned = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)  # Optional
     date_acquired = models.DateField()
+
+    class Meta:
+        db_table = 'property_ownerships' 
 
 class LegalProceeding(models.Model):
     FORECLOSURE = 'FC'
@@ -86,6 +93,10 @@ class LegalProceeding(models.Model):
         return str(self.id)
     
 
+    class Meta:
+        db_table = 'legal_proceedings' 
+
+
 class Auction(models.Model):
     property = models.ForeignKey(Property, on_delete=models.CASCADE, related_name='auctions', help_text="Reference to the property being auctioned")
     auction_date = models.DateField(blank=True, null=True, help_text="The date on which the auction will take place")
@@ -98,7 +109,10 @@ class Auction(models.Model):
 
     def __str__(self):
         return str(self.id)
-    
+
+    class Meta:
+        db_table = 'property_auctions'
+
 class SalesInformation(models.Model):
     PENDING = 'PD'
     CLOSED = 'CL'
@@ -126,6 +140,9 @@ class SalesInformation(models.Model):
         return str(self.id)
     
 
+    class Meta:
+        db_table = 'sales_information' 
+
 class Connection(models.Model):
     ASSOCIATE = 'Associate'
     RELATIVE = 'Relative'
@@ -145,12 +162,18 @@ class Connection(models.Model):
     def __str__(self):
         return self.name
     
+    class Meta:
+        db_table = 'owner_connections' 
+
 class ContactInformation(models.Model):
     owner = models.ForeignKey(Owner, on_delete=models.CASCADE, help_text="The owner for whom this contact information applies")
     
     def __str__(self):
         return self.owner.first_name
     
+    class Meta:
+        db_table = 'contact_information' 
+
 class Phone(models.Model):
     contact_information = models.ForeignKey(ContactInformation, on_delete=models.CASCADE, help_text="The contact information record to which this phone number belongs")
     phone_type = models.CharField(max_length=100, help_text="The type of phone, e.g., Mobile, Home, Work")
@@ -159,14 +182,20 @@ class Phone(models.Model):
 
     def __str__(self):
         return self.phone_number
-    
+
+    class Meta:
+        db_table = 'contact_phones' 
+
 class Email(models.Model):
     contact_information = models.ForeignKey(ContactInformation, on_delete=models.CASCADE, help_text="The contact information record to which this email address belongs")
     email_address = models.EmailField(help_text="The email address")
     
     def __str__(self):
         return self.email_address
-    
+
+    class Meta:
+        db_table = 'contact_emails'
+
 class MortgageAndDebt(models.Model):
     PRIMARY = 'PR'
     SECONDARY = 'SC'
@@ -184,7 +213,10 @@ class MortgageAndDebt(models.Model):
 
     def __str__(self):
         return str(self.id)
-    
+
+    class Meta:
+        db_table = 'property_mortgages_debts'
+
 class TaxLien(models.Model):
     property = models.ForeignKey(Property, on_delete=models.CASCADE, help_text="The property on which the tax lien is placed", related_name='tax_liens')
     lien_type = models.CharField(blank=True, null=True, max_length=100, help_text="The type of tax lien")
@@ -195,7 +227,10 @@ class TaxLien(models.Model):
 
     def __str__(self):
         return str(self.id)
-    
+
+    class Meta:
+        db_table = 'property_tax_liens'
+
 class DuplicateCheck(models.Model):
     SOURCE_NAME = [
         ("Auction.com", 'auction.com'),
@@ -216,3 +251,6 @@ class DuplicateCheck(models.Model):
 
     def __str__(self):
         return self.reformatted_address
+
+    class Meta:
+        db_table = 'duplicate_checks'
