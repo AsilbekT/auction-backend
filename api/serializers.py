@@ -57,7 +57,7 @@ class AuctionSerializer(serializers.ModelSerializer):
         model = Auction
         fields = [
             'id', 'auction_date', 'estimated_resale_value', 'opening_bid', 'estimated_debt', 
-            'rental_estimate', 'event_id', 'trustee_sale_number', 'link', 'property', 'sales_information'
+            'rental_estimate', 'trustee_sale_number', 'link', 'property', 'sales_information'
         ]
 
 
