@@ -51,13 +51,11 @@ class SalesInformationSerializer(serializers.ModelSerializer):
 
 
 class AuctionSerializer(serializers.ModelSerializer):
-    sales_information = SalesInformationSerializer(many=True, read_only=True, source='salesinformation_set')
-
     class Meta:
         model = Auction
         fields = [
             'id', 'auction_date', 'estimated_resale_value', 'opening_bid', 'estimated_debt', 
-            'rental_estimate', 'trustee_sale_number', 'link', 'property', 'sales_information'
+            'rental_estimate', 'trustee_sale_number', 'link'
         ]
 
 
