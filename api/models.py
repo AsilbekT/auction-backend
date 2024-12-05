@@ -121,6 +121,9 @@ class Ownership(models.Model):
             models.Index(fields=['date_acquired'], name='idx_date_acquired')
         ]
 
+    def __str__(self):
+        return self.owner.last_name
+    
 class LegalProceeding(models.Model):
     FORECLOSURE = 'FC'
     LIEN = 'LN'
