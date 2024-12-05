@@ -1,8 +1,10 @@
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
+from django.utils import timezone
 from rest_framework.permissions import IsAuthenticated
-from .models import Property, Owner, LegalProceeding, Auction, SalesInformation, Connection, MortgageAndDebt, TaxLien, DuplicateCheck
+from .models import Lead, Property, Owner, LegalProceeding, Auction, SalesInformation, Connection, MortgageAndDebt, TaxLien, DuplicateCheck
 from .serializers import (
+    FullLeadSerializer,
     PropertySerializer,
     OwnerSerializer,
     LegalProceedingSerializer,
@@ -10,6 +12,7 @@ from .serializers import (
     SalesInformationSerializer,
     ConnectionSerializer,
     MortgageAndDebtSerializer,
+    SmallLeadSerializer,
     TaxLienSerializer,
     SmallPropertySerializer,
     FullPropertySerializer,
@@ -20,33 +23,19 @@ from rest_framework.response import Response
 from .utils import check_priority, response_success, response_error, CustomPagination, standardize_address
 
 
+
 class PropertyViewSet(viewsets.ModelViewSet):
     queryset = Property.objects.all().order_by("-id")
     permission_classes = [IsAuthenticated]
+    serializer_class = PropertySerializer
     pagination_class = CustomPagination
 
     def get_serializer_class(self):
         if self.action == 'list':
             return SmallPropertySerializer
-        if self.action == 'retrieve':
+        elif self.action == 'retrieve':
             return FullPropertySerializer
         return PropertySerializer
-
-    def list(self, request, *args, **kwargs):
-        queryset = self.filter_queryset(self.get_queryset())
-        page = self.paginate_queryset(queryset)
-
-        serializer = self.get_serializer(page, many=True)
-        if page is not None:
-            return self.get_paginated_response(serializer.data)
-
-        return response_success("Properties retrieved successfully", serializer.data)
-
-    def retrieve(self, request, *args, **kwargs):
-        instance = self.get_object()
-        serializer = self.get_serializer(instance)
-        return response_success("Property details retrieved successfully", serializer.data)
-
 
 class OwnerViewSet(viewsets.ModelViewSet):
     queryset = Owner.objects.all().order_by("-id")
@@ -107,6 +96,7 @@ class DuplicateCheckViewSet(viewsets.ModelViewSet):
     queryset = DuplicateCheck.objects.all().order_by("-id")
     serializer_class = DuplicateCheckSerializer
     permission_classes = [IsAuthenticated]
+    pagination_class = CustomPagination
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
@@ -122,7 +112,6 @@ class DuplicateCheckViewSet(viewsets.ModelViewSet):
         standardized_address = standardize_address(serializer.validated_data.get("reformatted_address"))
         source_name = serializer.validated_data.get("source_name")
         is_auction = serializer.validated_data.get("is_auction")
-        print(([standardized_address, source_name, is_auction]))
         if any([standardized_address, source_name, is_auction]) == None:
             return False, "All fields must be provided"
         
@@ -145,3 +134,25 @@ class DuplicateCheckViewSet(viewsets.ModelViewSet):
 
         serializer.save(reformatted_address=standardized_address)
         return True, "Duplicate check object created successfully."
+
+
+
+class LeadViewSet(viewsets.ModelViewSet):
+    queryset = Lead.objects.all().order_by("-id")
+    serializer_class = SmallLeadSerializer
+    permission_classes = [IsAuthenticated]
+    pagination_class = CustomPagination
+
+
+    def get_serializer_class(self):
+        if self.action == 'list':
+            return SmallLeadSerializer
+        elif self.action in ['retrieve', 'update', 'partial_update']:
+            return FullLeadSerializer
+        return SmallLeadSerializer
+
+    def perform_create(self, serializer):
+        serializer.save()
+
+    def perform_update(self, serializer):
+        serializer.save(updated_at=timezone.now())

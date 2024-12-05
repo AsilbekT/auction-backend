@@ -1,5 +1,6 @@
 from rest_framework.routers import DefaultRouter
 from .views import (
+        LeadViewSet,
         PropertyViewSet, 
         OwnerViewSet, 
         LegalProceedingViewSet,
@@ -21,5 +22,6 @@ router.register('connections', ConnectionViewSet)
 router.register('mortgages-and-debts', MortgageAndDebtViewSet)
 router.register('tax-liens', TaxLienViewSet)
 router.register('duplicate-checks', DuplicateCheckViewSet)
+router.register('leads', LeadViewSet)
 
 urlpatterns = router.urls

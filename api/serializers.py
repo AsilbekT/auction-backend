@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Property, Owner, Ownership, LegalProceeding, Auction, SalesInformation, Connection, ContactInformation, Phone, Email, MortgageAndDebt, TaxLien, DuplicateCheck
+from .models import Lead, Property, Owner, Ownership, LegalProceeding, Auction, SalesInformation, Connection, ContactInformation, Phone, Email, MortgageAndDebt, TaxLien, DuplicateCheck
 
 
 class PhoneSerializer(serializers.ModelSerializer):
@@ -92,20 +92,9 @@ class SmallPropertySerializer(PropertySerializer):
 
 
 class FullPropertySerializer(serializers.ModelSerializer):
-    ownerships = OwnershipSerializer(many=True, read_only=True) 
-    legal_proceedings = LegalProceedingSerializer(many=True, read_only=True)
-    auctions = AuctionSerializer(many=True, read_only=True) 
-    mortgages_and_debts = MortgageAndDebtSerializer(many=True, read_only=True)  
-    tax_liens = TaxLienSerializer(many=True, read_only=True) 
-
     class Meta:
         model = Property
-        fields = [
-            'id', 'address', 'city', 'state', 'zip_code', 'county', 'apn', 'property_type',
-            'lot_size', 'year_built', 'zillow_link', 'occupancy_status', 'beds', 'baths',
-            'zestimate', 'square_footage', 'ownerships', 'legal_proceedings', 'auctions',
-            'mortgages_and_debts', 'tax_liens'
-        ]
+        fields = '__all__'
 
 
 
@@ -113,3 +102,23 @@ class DuplicateCheckSerializer(serializers.ModelSerializer):
     class Meta:
         model = DuplicateCheck
         fields = '__all__'
+
+
+class SmallLeadSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Lead
+        fields = ['id', 'assigned_to', 'stage', 'deal_strength']
+
+
+class FullLeadSerializer(serializers.ModelSerializer):
+    sales_information = SalesInformationSerializer(read_only=True)
+    auction = AuctionSerializer(read_only=True)
+    property = PropertySerializer(read_only=True)
+    ownership = OwnershipSerializer(read_only=True)
+
+    class Meta:
+        model = Lead
+        fields = [
+            'id', 'assigned_to', 'stage', 'deal_strength', 'sales_information', 
+            'auction', 'property', 'ownership', 'created_at', 'updated_at'
+        ]

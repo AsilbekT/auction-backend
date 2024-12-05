@@ -1,106 +1,94 @@
 from django.contrib import admin
+from django.contrib.admin import AdminSite
+from django.contrib.auth.models import User, Group
+from django.contrib.auth.admin import UserAdmin, GroupAdmin
+
+class RealEstateAdminSite(AdminSite):
+    site_header = 'Real Estate Management Dashboard'
+    site_title = 'Real Estate Admin Portal'
+    index_title = 'Real Estate Operations'
+
+admin_site = RealEstateAdminSite(name='real_estate_admin')
+
+admin_site.register(User, UserAdmin)
+admin_site.register(Group, GroupAdmin)
+
 from .models import (
-    Property, 
-    Auction, 
-    SalesInformation, 
-    LegalProceeding, 
-    Owner,
-    Connection, 
-    ContactInformation, 
-    Phone, 
-    Email, 
-    MortgageAndDebt, 
-    TaxLien, 
-    DuplicateCheck, 
-    Owner, 
-    Ownership, 
-    Property,
-    DuplicateCheck
+    DuplicateCheck, Property, Owner, Ownership, LegalProceeding,
+    Auction, Connection, ContactInformation, Phone, Email,
+    MortgageAndDebt, TaxLien, SalesInformation, Lead
 )
 
-
-class PropertyAdmin(admin.ModelAdmin):
-    list_display = ['address', 'city', 'state', 'zip_code', 'property_type', 'occupancy_status']
-    search_fields = ['address', 'city', 'apn']
-    list_filter = ['city', 'state', 'property_type', 'occupancy_status']
-
-class AuctionAdmin(admin.ModelAdmin):
-    list_display = ['property', 'auction_date', 'estimated_resale_value', 'opening_bid']
-    list_filter = ['auction_date']
-    search_fields = ['property__address']
-
-class SalesInformationAdmin(admin.ModelAdmin):
-    list_display = ['auction', 'sale_date', 'sold_amount', 'sale_status', 'stage']
-    list_filter = ['sale_status', 'stage']
-    search_fields = ['property__address']
-
-class LegalProceedingAdmin(admin.ModelAdmin):
-    list_display = ['property', 'document_name', 'case_type', 'date_of_filing']
-    list_filter = ['case_type', 'date_of_filing']
-    search_fields = ['property__address', 'plaintiff']
-
-
-class OwnershipInline(admin.TabularInline):
-    model = Ownership
-    extra = 1  # Number of empty forms to display in the inline section
-    fields = ('property', 'percentage_owned', 'date_acquired')  # Fields to display in the inline
-    autocomplete_fields = ('property',)  # Enables search for related properties
-
-
-class ConnectionAdmin(admin.ModelAdmin):
-    list_display = ['owner', 'connection_type', 'name']
-    list_filter = ['connection_type']
-    search_fields = ['owner__first_name', 'owner__last_name', 'name']
-
-class ContactInformationAdmin(admin.ModelAdmin):
-    list_display = ['owner']
-
-class PhoneAdmin(admin.ModelAdmin):
-    list_display = ['contact_information', 'phone_type', 'phone_connected', 'phone_number']
-    list_filter = ['phone_type', 'phone_connected']
-    search_fields = ['phone_number']
-
-class EmailAdmin(admin.ModelAdmin):
-    list_display = ['contact_information', 'email_address']
-    search_fields = ['email_address']
-
-class MortgageAndDebtAdmin(admin.ModelAdmin):
-    list_display = ['property', 'mortgage_date', 'mortgage_amount', 'loan_type']
-    list_filter = ['mortgage_date', 'loan_type']
-    search_fields = ['property__address']
-
-class TaxLienAdmin(admin.ModelAdmin):
-    list_display = ['property', 'lien_type', 'lien_date', 'lien_amount']
-    list_filter = ['lien_type', 'lien_date']
-    search_fields = ['property__address']
-
-class OwnerAdmin(admin.ModelAdmin):
-    list_display = ('first_name', 'last_name', 'dob', 'dod', 'mailing_address', 'mailing_city', 'mailing_state', 'mailing_zip')  # Fields displayed in the admin list view
-    search_fields = ('first_name', 'last_name', 'mailing_address')  # Fields available for search
-    list_filter = ('mailing_city', 'mailing_state')  # Filters in the right sidebar
-    inlines = [OwnershipInline]  # Adds Ownership as an inline to Owner
-
-class OwnershipAdmin(admin.ModelAdmin):
-    list_display = ('owner', 'property', 'percentage_owned', 'date_acquired')  # Fields displayed in the admin list view
-    search_fields = ('owner__first_name', 'owner__last_name', 'property__address')  # Fields available for search
-    list_filter = ('date_acquired',)  # Filters in the right sidebar
-    autocomplete_fields = ('owner', 'property')  # Enables search for related owners and properties
-
+@admin.register(DuplicateCheck, site=admin_site)
 class DuplicateCheckAdmin(admin.ModelAdmin):
-    list_display = ['reformatted_address', 'source_name', 'is_auction', 'created_at']
-    search_fields = ['reformatted_address', 'source_name']
-    list_filter = ['is_auction', 'source_name']
+    list_display = ('reformatted_address', 'source_name', 'is_auction', 'created_at', 'updated_at')
+    search_fields = ('reformatted_address', 'source_name')
+    list_filter = ('is_auction', 'source_name')
 
-admin.site.register(Property, PropertyAdmin)
-admin.site.register(Auction, AuctionAdmin)
-admin.site.register(SalesInformation, SalesInformationAdmin)
-admin.site.register(LegalProceeding, LegalProceedingAdmin)
-admin.site.register(Owner, OwnerAdmin)
-admin.site.register(Ownership, OwnershipAdmin)
-admin.site.register(Connection, ConnectionAdmin)
-admin.site.register(ContactInformation, ContactInformationAdmin)
-admin.site.register(Phone, PhoneAdmin)
-admin.site.register(Email, EmailAdmin)
-admin.site.register(MortgageAndDebt, MortgageAndDebtAdmin)
-admin.site.register(TaxLien, TaxLienAdmin)
-admin.site.register(DuplicateCheck, DuplicateCheckAdmin)
+@admin.register(Property, site=admin_site)
+class PropertyAdmin(admin.ModelAdmin):
+    list_display = ('address', 'city', 'state', 'zip_code', 'property_type', 'zestimate', 'created_at')
+    search_fields = ('address', 'city', 'zip_code')
+    list_filter = ('city', 'state', 'property_type')
+
+@admin.register(Owner, site=admin_site)
+class OwnerAdmin(admin.ModelAdmin):
+    list_display = ('first_name', 'last_name', 'dob', 'dod', 'mailing_address')
+    search_fields = ('first_name', 'last_name', 'mailing_address')
+    list_filter = ('mailing_state',)
+
+@admin.register(Ownership, site=admin_site)
+class OwnershipAdmin(admin.ModelAdmin):
+    list_display = ('owner', 'percentage_owned', 'date_acquired')
+    search_fields = ('owner__first_name', 'owner__last_name')
+
+@admin.register(LegalProceeding, site=admin_site)
+class LegalProceedingAdmin(admin.ModelAdmin):
+    list_display = ('case_type', 'property', 'total_amount_owed', 'date_of_filing')
+    search_fields = ('case_type', 'property__address')
+    list_filter = ('case_type',)
+
+@admin.register(Auction, site=admin_site)
+class AuctionAdmin(admin.ModelAdmin):
+    list_display = ('auction_date', 'estimated_resale_value', 'opening_bid')
+    search_fields = ('auction_date',)
+
+@admin.register(Connection, site=admin_site)
+class ConnectionAdmin(admin.ModelAdmin):
+    list_display = ('owner', 'connection_type', 'name')
+    search_fields = ('owner__first_name', 'owner__last_name', 'name')
+
+@admin.register(ContactInformation, site=admin_site)
+class ContactInformationAdmin(admin.ModelAdmin):
+    list_display = ('owner',)
+    search_fields = ('owner__first_name', 'owner__last_name')
+
+@admin.register(Phone, site=admin_site)
+class PhoneAdmin(admin.ModelAdmin):
+    list_display = ('phone_number', 'phone_type', 'contact_information')
+    search_fields = ('phone_number',)
+
+@admin.register(Email, site=admin_site)
+class EmailAdmin(admin.ModelAdmin):
+    list_display = ('email_address', 'contact_information')
+    search_fields = ('email_address',)
+
+@admin.register(MortgageAndDebt, site=admin_site)
+class MortgageAndDebtAdmin(admin.ModelAdmin):
+    list_display = ('property', 'mortgage_amount', 'interest_rate')
+    search_fields = ('property__address',)
+
+@admin.register(TaxLien, site=admin_site)
+class TaxLienAdmin(admin.ModelAdmin):
+    list_display = ('property', 'lien_amount', 'lien_date')
+    search_fields = ('property__address',)
+
+@admin.register(SalesInformation, site=admin_site)
+class SalesInformationAdmin(admin.ModelAdmin):
+    list_display = ('sale_date', 'sold_amount', 'sale_status')
+    search_fields = ('sale_date',)
+
+@admin.register(Lead, site=admin_site)
+class LeadAdmin(admin.ModelAdmin):
+    list_display = ('property', 'assigned_to', 'stage', 'deal_strength')
+    search_fields = ('property__address', 'assigned_to')
