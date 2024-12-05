@@ -5,7 +5,7 @@ from .models import Lead, Property, Owner, Ownership, LegalProceeding, Auction, 
 class SmallPhoneSerializer(serializers.ModelSerializer):
     class Meta:
         model = Phone
-        fields = ['phone_number', 'phone_type']
+        fields = ['id', 'phone_number', 'phone_type']
 
 class PhoneSerializer(serializers.ModelSerializer):
     class Meta:
@@ -32,7 +32,7 @@ class ContactInformationSerializer(serializers.ModelSerializer):
 class SmallOwnershipSerializer(serializers.ModelSerializer):
     class Meta:
         model = Ownership
-        fields = ['owner', 'percentage_owned']
+        fields = ['id', 'owner', 'percentage_owned']
 
 
 class OwnershipSerializer(serializers.ModelSerializer):
@@ -44,7 +44,7 @@ class OwnershipSerializer(serializers.ModelSerializer):
 class SmallOwnerSerializer(serializers.ModelSerializer):
     class Meta:
         model = Owner
-        fields = ['first_name', 'last_name', 'mailing_address']
+        fields = ['id', 'first_name', 'last_name', 'mailing_address']
 
 
 class OwnerSerializer(serializers.ModelSerializer):
