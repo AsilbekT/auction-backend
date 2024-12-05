@@ -2,9 +2,13 @@ from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from django.utils import timezone
 from rest_framework.permissions import IsAuthenticated
-from .models import Lead, Property, Owner, LegalProceeding, Auction, SalesInformation, Connection, MortgageAndDebt, TaxLien, DuplicateCheck
+from .models import ContactInformation, Email, Lead, Ownership, Phone, Property, Owner, LegalProceeding, Auction, SalesInformation, Connection, MortgageAndDebt, TaxLien, DuplicateCheck
 from .serializers import (
+    ContactInformationSerializer,
+    EmailSerializer,
     FullLeadSerializer,
+    OwnershipSerializer,
+    PhoneSerializer,
     PropertySerializer,
     OwnerSerializer,
     LegalProceedingSerializer,
@@ -13,6 +17,8 @@ from .serializers import (
     ConnectionSerializer,
     MortgageAndDebtSerializer,
     SmallLeadSerializer,
+    SmallOwnerSerializer,
+    SmallPhoneSerializer,
     TaxLienSerializer,
     SmallPropertySerializer,
     FullPropertySerializer,
@@ -37,11 +43,17 @@ class PropertyViewSet(viewsets.ModelViewSet):
             return FullPropertySerializer
         return PropertySerializer
 
+
+
 class OwnerViewSet(viewsets.ModelViewSet):
     queryset = Owner.objects.all().order_by("-id")
-    serializer_class = OwnerSerializer
     permission_classes = [IsAuthenticated]
     pagination_class = CustomPagination
+
+    def get_serializer_class(self):
+        if self.action == 'list':
+            return SmallOwnerSerializer
+        return OwnerSerializer
 
 
 class LegalProceedingViewSet(viewsets.ModelViewSet):
@@ -156,3 +168,47 @@ class LeadViewSet(viewsets.ModelViewSet):
 
     def perform_update(self, serializer):
         serializer.save(updated_at=timezone.now())
+
+
+class PhoneViewSet(viewsets.ModelViewSet):
+    queryset = Phone.objects.all().order_by("-id")
+    permission_classes = [IsAuthenticated]
+    pagination_class = CustomPagination
+
+    def get_serializer_class(self):
+        if self.action == 'list':
+            return SmallPhoneSerializer
+        return PhoneSerializer
+
+class EmailViewSet(viewsets.ModelViewSet):
+    queryset = Email.objects.all().order_by("-id")
+    permission_classes = [IsAuthenticated]
+    pagination_class = CustomPagination
+
+    def get_serializer_class(self):
+        if self.action == 'list':
+            return EmailSerializer
+        return EmailSerializer
+
+
+class ContactInformationViewSet(viewsets.ModelViewSet):
+    queryset = ContactInformation.objects.all().order_by("-id")
+    permission_classes = [IsAuthenticated]
+    pagination_class = CustomPagination
+
+    def get_serializer_class(self):
+        if self.action == 'list':
+            return ContactInformationSerializer
+        return ContactInformationSerializer
+
+
+
+class OwnershipViewSet(viewsets.ModelViewSet):
+    queryset = Ownership.objects.all().order_by("-id")
+    serializer_class = OwnershipSerializer
+    permission_classes = [IsAuthenticated]
+    pagination_class = CustomPagination
+
+
+
+

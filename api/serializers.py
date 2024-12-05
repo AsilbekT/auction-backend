@@ -2,10 +2,16 @@ from rest_framework import serializers
 from .models import Lead, Property, Owner, Ownership, LegalProceeding, Auction, SalesInformation, Connection, ContactInformation, Phone, Email, MortgageAndDebt, TaxLien, DuplicateCheck
 
 
+class SmallPhoneSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Phone
+        fields = ['phone_number', 'phone_type']
+
 class PhoneSerializer(serializers.ModelSerializer):
     class Meta:
         model = Phone
         fields = '__all__'
+
 
 
 class EmailSerializer(serializers.ModelSerializer):
@@ -23,10 +29,22 @@ class ContactInformationSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
+class SmallOwnershipSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Ownership
+        fields = ['owner', 'percentage_owned']
+
+
 class OwnershipSerializer(serializers.ModelSerializer):
     class Meta:
         model = Ownership
         fields = '__all__'
+
+
+class SmallOwnerSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Owner
+        fields = ['first_name', 'last_name', 'mailing_address']
 
 
 class OwnerSerializer(serializers.ModelSerializer):
