@@ -312,8 +312,8 @@ class Lead(models.Model):
     ]
     sales_information = models.ForeignKey(SalesInformation, on_delete=models.CASCADE, blank=True, null=True)
     auction = models.ForeignKey(Auction, on_delete=models.CASCADE, blank=True, null=True)
-    property = models.ForeignKey(Property, on_delete=models.CASCADE)
-    ownership = models.ForeignKey(Ownership, models.CASCADE)
+    property = models.ForeignKey(Property, on_delete=models.CASCADE, blank=True, null=True)
+    ownership = models.ForeignKey(Ownership, models.CASCADE, blank=True, null=True)
     assigned_to = models.CharField(max_length=100, blank=True, null=True)
     stage = models.CharField(max_length=2, choices=STAGES, blank=True, null=True, help_text="The stage of the sales process, e.g., Initial or Follow-Up")
     deal_strength = models.CharField(max_length=100, blank=True, null=True, help_text="An assessment of the deal strength or likelihood to close successfully")
