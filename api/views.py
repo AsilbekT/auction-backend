@@ -4,16 +4,17 @@ from django.utils import timezone
 from rest_framework.permissions import IsAuthenticated
 from .models import ContactInformation, Email, Lead, Ownership, Phone, Property, Owner, LegalProceeding, Auction, SalesInformation, Connection, MortgageAndDebt, TaxLien, DuplicateCheck
 from .serializers import (
+    BasicContactInformationSerializer,
     ContactInformationSerializer,
     EmailSerializer,
     FullLeadSerializer,
     GetLeadSerializer,
     OwnershipSerializer,
     PhoneSerializer,
-    PropertySerializer,
     OwnerSerializer,
     LegalProceedingSerializer,
-    AuctionSerializer,
+    ReadAuctionSerializer,
+    ReadPropertySerializer,
     SalesInformationSerializer,
     ConnectionSerializer,
     MortgageAndDebtSerializer,
@@ -21,11 +22,13 @@ from .serializers import (
     SmallOwnerSerializer,
     SmallPhoneSerializer,
     TaxLienSerializer,
-    SmallPropertySerializer,
-    FullPropertySerializer,
-    DuplicateCheckSerializer
+    DuplicateCheckSerializer,
+    WriteAuctionSerializer,
+    WriteOwnerSerializer,
+    WritePropertySerializer
 
 )
+from rest_framework import serializers
 from rest_framework.response import Response
 from .utils import check_priority, response_success, response_error, CustomPagination, standardize_address
 
@@ -34,15 +37,35 @@ from .utils import check_priority, response_success, response_error, CustomPagin
 class PropertyViewSet(viewsets.ModelViewSet):
     queryset = Property.objects.all().order_by("-id")
     permission_classes = [IsAuthenticated]
-    serializer_class = PropertySerializer
     pagination_class = CustomPagination
 
     def get_serializer_class(self):
-        if self.action == 'list':
-            return SmallPropertySerializer
-        elif self.action == 'retrieve':
-            return FullPropertySerializer
-        return PropertySerializer
+        if self.action in ['list', 'retrieve']:
+            return ReadPropertySerializer
+        elif self.action in ['create', 'update', 'partial_update']:
+            return WritePropertySerializer
+        return ReadPropertySerializer
+
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+    def perform_create(self, serializer):
+        serializer.save()
+
+    def update(self, request, *args, **kwargs):
+        partial = kwargs.pop('partial', False)
+        instance = self.get_object()
+        serializer = self.get_serializer(instance, data=request.data, partial=partial)
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
+        return Response(serializer.data)
+
+    def perform_update(self, serializer):
+        serializer.save()
 
 
 
@@ -52,8 +75,10 @@ class OwnerViewSet(viewsets.ModelViewSet):
     pagination_class = CustomPagination
 
     def get_serializer_class(self):
-        if self.action == 'list':
+        if self.action == 'list' or self.action == 'create':
             return SmallOwnerSerializer
+        elif self.action == 'create':
+            return WriteOwnerSerializer
         return OwnerSerializer
 
 
@@ -66,15 +91,41 @@ class LegalProceedingViewSet(viewsets.ModelViewSet):
 
 class AuctionViewSet(viewsets.ModelViewSet):
     queryset = Auction.objects.all().order_by("-id")
-    serializer_class = AuctionSerializer
     permission_classes = [IsAuthenticated]
     pagination_class = CustomPagination
 
-    def retrieve_full(self, request, pk=None):
-        instance = self.get_object()
-        serializer = AuctionSerializer(instance)
+    def get_serializer_class(self):
+        if self.action in ['list', 'retrieve']:
+            return ReadAuctionSerializer
+        elif self.action in ['create', 'update', 'partial_update']:
+            return WriteAuctionSerializer
+        return ReadAuctionSerializer
 
-        return response_success("Auction details retrieved successfully", serializer.data)
+    def list(self, request, *args, **kwargs):
+
+        queryset = self.filter_queryset(self.get_queryset())
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
+
+    def create(self, request, *args, **kwargs):
+
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+    def perform_create(self, serializer):
+        serializer.save()
+
+    def retrieve(self, request, *args, **kwargs):
+        instance = self.get_object()
+        serializer = self.get_serializer(instance)
+        return Response(serializer.data)
 
 
 class SalesInformationViewSet(viewsets.ModelViewSet):
@@ -190,10 +241,9 @@ class ContactInformationViewSet(viewsets.ModelViewSet):
     pagination_class = CustomPagination
 
     def get_serializer_class(self):
-        if self.action == 'list':
+        if self.action in ['retrieve', 'list']:
             return ContactInformationSerializer
-        return ContactInformationSerializer
-
+        return BasicContactInformationSerializer
 
 
 class OwnershipViewSet(viewsets.ModelViewSet):

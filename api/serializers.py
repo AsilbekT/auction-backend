@@ -29,6 +29,12 @@ class ContactInformationSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
+class BasicContactInformationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ContactInformation
+        fields = '__all__'
+
+
 class SmallOwnershipSerializer(serializers.ModelSerializer):
     class Meta:
         model = Ownership
@@ -40,6 +46,11 @@ class OwnershipSerializer(serializers.ModelSerializer):
         model = Ownership
         fields = '__all__'
 
+
+class WriteOwnerSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Owner
+        fields = '__all__'
 
 class SmallOwnerSerializer(serializers.ModelSerializer):
     class Meta:
@@ -61,6 +72,7 @@ class LegalProceedingSerializer(serializers.ModelSerializer):
         model = LegalProceeding
         fields = '__all__'
 
+
 class SalesInformationSerializer(serializers.ModelSerializer):
     class Meta:
         model = SalesInformation
@@ -68,13 +80,16 @@ class SalesInformationSerializer(serializers.ModelSerializer):
 
 
 
-class AuctionSerializer(serializers.ModelSerializer):
+class ReadAuctionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Auction
-        fields = [
-            'id', 'auction_date', 'estimated_resale_value', 'opening_bid', 'estimated_debt', 
-            'rental_estimate', 'trustee_sale_number', 'link'
-        ]
+        fields = ['id', 'auction_date', 'estimated_resale_value', 'opening_bid']
+
+
+class WriteAuctionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Auction
+        fields = '__all__'
 
 
 class ConnectionSerializer(serializers.ModelSerializer):
@@ -95,17 +110,41 @@ class TaxLienSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
-class PropertySerializer(serializers.ModelSerializer):
+class DuplicateCheckSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = DuplicateCheck
+        fields = ['id', 'reformatted_address', 'source_name', 'is_auction']
+
+class ReadPropertySerializer(serializers.ModelSerializer):
+    dublicate_address = DuplicateCheckSerializer(read_only=True)
+
     class Meta:
         model = Property
-        fields = ['id', 'address', 'city', 'state', 'zip_code', 'beds', 'baths']  # Basic fields
+        fields = [
+            'id', 'address', 'city', 'state', 'zip_code', 'beds', 'baths',
+            'dublicate_address', 'created_at', 'updated_at'
+        ]
 
 
-class SmallPropertySerializer(PropertySerializer):
+class WritePropertySerializer(serializers.ModelSerializer):
+    dublicate_address = serializers.PrimaryKeyRelatedField(
+        queryset=DuplicateCheck.objects.all(),
+        required=False,
+        allow_null=True,
+        help_text="ID of the related DuplicateCheck"
+    )
+
     class Meta:
         model = Property
-        fields = ['id', 'address', 'city', 'state', 'zip_code', 'beds', 'baths']
+        fields = [
+            'id', 'address', 'city', 'state', 'zip_code', 'beds', 'baths',
+            'dublicate_address', 'lot_size', 'year_built', 'property_type'
+        ]
 
+    def validate(self, data):
+        if data.get('dublicate_address') and not DuplicateCheck.objects.filter(id=data['dublicate_address'].id).exists():
+            raise serializers.ValidationError("Invalid DuplicateCheck ID.")
+        return data
 
 class FullPropertySerializer(serializers.ModelSerializer):
     class Meta:
@@ -149,7 +188,7 @@ class FullLeadSerializer(serializers.ModelSerializer):
 
     def update(self, instance, validated_data):
         print("updating")
-        instance.updated_at = timezone.now()  # Update the timestamp here rather than in viewset
+        instance.updated_at = timezone.now()
         for attr, value in validated_data.items():
             setattr(instance, attr, value)
         instance.save()
@@ -158,10 +197,12 @@ class FullLeadSerializer(serializers.ModelSerializer):
 
 class GetLeadSerializer(serializers.ModelSerializer):
     sales_information = SalesInformationSerializer(read_only=True)
-    auction = AuctionSerializer(read_only=True)
-    property = PropertySerializer(read_only=True)
+    auction = ReadAuctionSerializer(read_only=True)
+    property = ReadPropertySerializer(read_only=True)
     ownership = OwnershipSerializer(read_only=True)
 
     class Meta:
         model = Lead
         fields = ['id', 'assigned_to', 'stage', 'deal_strength', 'sales_information', 'auction', 'property', 'ownership', 'created_at', 'updated_at']
+
+
