@@ -214,7 +214,7 @@ class NestedPropertySerializer(serializers.ModelSerializer):
     tax_liens = NestedTaxLienSerializer(many=True, read_only=True)
     mortgages_and_debts = NestedMortgageAndDebtSerializer(many=True, read_only=True)
     legal_proceedings = LegalProceedingSerializer(many=True, read_only=True)
-    dublicate_address = DuplicateCheckSerializer(many=True, read_only=True)
+    dublicate_address = DuplicateCheckSerializer(read_only=True)
 
     class Meta:
         model = Property
