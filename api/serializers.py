@@ -58,13 +58,6 @@ class SmallOwnerSerializer(serializers.ModelSerializer):
         fields = ['id', 'first_name', 'last_name', 'mailing_address']
 
 
-class OwnerSerializer(serializers.ModelSerializer):
-    ownerships = OwnershipSerializer(many=True, read_only=True, source='ownership_set')
-    contact_information = ContactInformationSerializer(many=True, read_only=True, source='contactinformation_set')
-
-    class Meta:
-        model = Owner
-        fields = '__all__'
 
 
 class LegalProceedingSerializer(serializers.ModelSerializer):
@@ -218,10 +211,16 @@ class NestedContactInformationSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
-class ExpandedOwnershipSerializer(serializers.ModelSerializer):
-    owner = OwnerSerializer(many=True, read_only=True)
-    contact_information = NestedContactInformationSerializer(many=True, read_only=True)
-    connections = ConnectionSerializer(many=True, read_only=True)
+class OwnerSerializer(serializers.ModelSerializer):
+    connection = ConnectionSerializer(many=True, read_only=True)
+    contact_information = NestedContactInformationSerializer(many=True, read_only=True, source='contactinformation_set')
+
+    class Meta:
+        model = Owner
+        fields = '__all__'
+
+class NestedOwnershipSerializer(serializers.ModelSerializer):
+    owner = OwnerSerializer(read_only=True)
 
     class Meta:
         model = Ownership
@@ -233,7 +232,7 @@ class GetLeadSerializer(serializers.ModelSerializer):
     sales_information = SalesInformationSerializer(read_only=True)
     auction = ReadAuctionSerializer(read_only=True)
     property = NestedPropertySerializer(read_only=True)
-    ownership = ExpandedOwnershipSerializer(read_only=True)
+    ownership = NestedOwnershipSerializer(read_only=True)
 
     class Meta:
         model = Lead
