@@ -208,12 +208,12 @@ class NestedContactInformationSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ContactInformation
-        fields = '__all__'
+        fields = ['id','phones','emails']
 
 
 class OwnerSerializer(serializers.ModelSerializer):
+    contact_information = NestedContactInformationSerializer(many=True, read_only=True)
     connection = ConnectionSerializer(many=True, read_only=True)
-    contact_information = NestedContactInformationSerializer(many=True, read_only=True, source='contactinformation_set')
 
     class Meta:
         model = Owner
