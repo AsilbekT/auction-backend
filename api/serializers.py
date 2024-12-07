@@ -211,9 +211,9 @@ class NestedMortgageAndDebtSerializer(serializers.ModelSerializer):
 
 
 class NestedPropertySerializer(serializers.ModelSerializer):
-    tax_liens = NestedTaxLienSerializer(many=True, read_only=True, source='tax_liens')
-    mortgages_and_debts = NestedMortgageAndDebtSerializer(many=True, read_only=True, source='mortgages_and_debts')
-    legal_proceedings = LegalProceedingSerializer(many=True, read_only=True, source='legal_proceedings')
+    tax_liens = NestedTaxLienSerializer(many=True, read_only=True)
+    mortgages_and_debts = NestedMortgageAndDebtSerializer(many=True, read_only=True)
+    legal_proceedings = LegalProceedingSerializer(many=True, read_only=True)
 
     class Meta:
         model = Property
