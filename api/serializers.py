@@ -195,14 +195,68 @@ class FullLeadSerializer(serializers.ModelSerializer):
         return instance
 
 
+
+
+
+class NestedTaxLienSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = TaxLien
+        fields = '__all__'
+
+
+class NestedMortgageAndDebtSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = MortgageAndDebt
+        fields = '__all__'
+
+
+class NestedPropertySerializer(serializers.ModelSerializer):
+    tax_liens = NestedTaxLienSerializer(many=True, read_only=True, source='tax_liens')
+    mortgages_and_debts = NestedMortgageAndDebtSerializer(many=True, read_only=True, source='mortgages_and_debts')
+    legal_proceedings = LegalProceedingSerializer(many=True, read_only=True, source='legal_proceedings')
+
+    class Meta:
+        model = Property
+        fields = '__all__'
+
+
+class NestedOwnerSerializer(serializers.ModelSerializer):
+    contact_information = ContactInformationSerializer(many=True, read_only=True, source='contactinformation_set')
+    ownerships = SmallOwnershipSerializer(many=True, read_only=True, source='ownerships')
+
+    class Meta:
+        model = Owner
+        fields = '__all__'
+
+class NestedContactInformationSerializer(serializers.ModelSerializer):
+    phones = PhoneSerializer(many=True, read_only=True, source='phone_set')
+    emails = EmailSerializer(many=True, read_only=True, source='email_set')
+
+    class Meta:
+        model = ContactInformation
+        fields = '__all__'
+
+
+class ExpandedOwnershipSerializer(serializers.ModelSerializer):
+    ownerships = SmallOwnershipSerializer(many=True, read_only=True, source='ownerships')
+    contact_information = NestedContactInformationSerializer(many=True, read_only=True, source='contactinformation_set')
+    connections = ConnectionSerializer(many=True, read_only=True, source='connection_set')
+
+    class Meta:
+        model = Ownership
+        fields = '__all__'
+
+
+
 class GetLeadSerializer(serializers.ModelSerializer):
     sales_information = SalesInformationSerializer(read_only=True)
     auction = ReadAuctionSerializer(read_only=True)
-    property = ReadPropertySerializer(read_only=True)
-    ownership = OwnershipSerializer(read_only=True)
+    property = NestedPropertySerializer(read_only=True)
+    ownership = ExpandedOwnershipSerializer(read_only=True)
 
     class Meta:
         model = Lead
-        fields = ['id', 'assigned_to', 'stage', 'deal_strength', 'sales_information', 'auction', 'property', 'ownership', 'created_at', 'updated_at']
-
-
+        fields = [
+            'id', 'assigned_to', 'stage', 'deal_strength', 'sales_information', 
+            'auction', 'property', 'ownership', 'created_at', 'updated_at'
+        ]
