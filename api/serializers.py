@@ -221,16 +221,16 @@ class NestedPropertySerializer(serializers.ModelSerializer):
 
 
 class NestedOwnerSerializer(serializers.ModelSerializer):
-    contact_information = ContactInformationSerializer(many=True, read_only=True, source='contactinformation_set')
-    ownerships = SmallOwnershipSerializer(many=True, read_only=True, source='ownerships')
+    contact_information = ContactInformationSerializer(many=True, read_only=True)
+    ownerships = SmallOwnershipSerializer(many=True, read_only=True)
 
     class Meta:
         model = Owner
         fields = '__all__'
 
 class NestedContactInformationSerializer(serializers.ModelSerializer):
-    phones = PhoneSerializer(many=True, read_only=True, source='phone_set')
-    emails = EmailSerializer(many=True, read_only=True, source='email_set')
+    phones = PhoneSerializer(many=True, read_only=True)
+    emails = EmailSerializer(many=True, read_only=True)
 
     class Meta:
         model = ContactInformation
@@ -238,9 +238,9 @@ class NestedContactInformationSerializer(serializers.ModelSerializer):
 
 
 class ExpandedOwnershipSerializer(serializers.ModelSerializer):
-    ownerships = SmallOwnershipSerializer(many=True, read_only=True, source='ownerships')
-    contact_information = NestedContactInformationSerializer(many=True, read_only=True, source='contactinformation_set')
-    connections = ConnectionSerializer(many=True, read_only=True, source='connection_set')
+    ownerships = SmallOwnershipSerializer(many=True, read_only=True)
+    contact_information = NestedContactInformationSerializer(many=True, read_only=True)
+    connections = ConnectionSerializer(many=True, read_only=True)
 
     class Meta:
         model = Ownership
