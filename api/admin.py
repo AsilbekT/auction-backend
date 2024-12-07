@@ -21,74 +21,74 @@ from .models import (
 
 @admin.register(DuplicateCheck, site=admin_site)
 class DuplicateCheckAdmin(admin.ModelAdmin):
-    list_display = ('reformatted_address', 'source_name', 'is_auction', 'created_at', 'updated_at')
+    list_display = ('id', 'reformatted_address', 'source_name', 'is_auction', 'created_at', 'updated_at')
     search_fields = ('reformatted_address', 'source_name')
     list_filter = ('is_auction', 'source_name')
 
 @admin.register(Property, site=admin_site)
 class PropertyAdmin(admin.ModelAdmin):
-    list_display = ('address', 'city', 'state', 'zip_code', 'property_type', 'zestimate', 'created_at')
+    list_display = ('id', 'address', 'city', 'state', 'zip_code', 'property_type', 'zestimate', 'created_at')
     search_fields = ('address', 'city', 'zip_code')
     list_filter = ('city', 'state', 'property_type')
 
 @admin.register(Owner, site=admin_site)
 class OwnerAdmin(admin.ModelAdmin):
-    list_display = ('first_name', 'last_name', 'dob', 'dod', 'mailing_address')
+    list_display = ('id', 'first_name', 'last_name', 'dob', 'dod', 'mailing_address')
     search_fields = ('first_name', 'last_name', 'mailing_address')
     list_filter = ('mailing_state',)
 
 @admin.register(Ownership, site=admin_site)
 class OwnershipAdmin(admin.ModelAdmin):
-    list_display = ('owner', 'percentage_owned', 'date_acquired')
+    list_display = ('id', 'owner', 'percentage_owned', 'date_acquired')
     search_fields = ('owner__first_name', 'owner__last_name')
 
 @admin.register(LegalProceeding, site=admin_site)
 class LegalProceedingAdmin(admin.ModelAdmin):
-    list_display = ('case_type', 'property', 'total_amount_owed', 'date_of_filing')
+    list_display = ('id', 'case_type', 'property', 'total_amount_owed', 'date_of_filing')
     search_fields = ('case_type', 'property__address')
     list_filter = ('case_type',)
 
 @admin.register(Auction, site=admin_site)
 class AuctionAdmin(admin.ModelAdmin):
-    list_display = ('auction_date', 'estimated_resale_value', 'opening_bid')
+    list_display = ('id', 'auction_date', 'estimated_resale_value', 'opening_bid')
     search_fields = ('auction_date',)
 
 @admin.register(Connection, site=admin_site)
 class ConnectionAdmin(admin.ModelAdmin):
-    list_display = ('owner', 'connection_type', 'name')
+    list_display = ('id', 'owner', 'connection_type', 'name')
     search_fields = ('owner__first_name', 'owner__last_name', 'name')
 
 @admin.register(ContactInformation, site=admin_site)
 class ContactInformationAdmin(admin.ModelAdmin):
-    list_display = ('owner',)
+    list_display = ('id', 'owner',)
     search_fields = ('owner__first_name', 'owner__last_name')
 
 @admin.register(Phone, site=admin_site)
 class PhoneAdmin(admin.ModelAdmin):
-    list_display = ('phone_number', 'phone_type', 'contact_information')
+    list_display = ('id', 'phone_number', 'phone_type', 'contact_information')
     search_fields = ('phone_number',)
 
 @admin.register(Email, site=admin_site)
 class EmailAdmin(admin.ModelAdmin):
-    list_display = ('email_address', 'contact_information')
+    list_display = ('id', 'email_address', 'contact_information')
     search_fields = ('email_address',)
 
 @admin.register(MortgageAndDebt, site=admin_site)
 class MortgageAndDebtAdmin(admin.ModelAdmin):
-    list_display = ('property', 'mortgage_amount', 'interest_rate')
+    list_display = ('id', 'property', 'mortgage_amount', 'interest_rate')
     search_fields = ('property__address',)
 
 @admin.register(TaxLien, site=admin_site)
 class TaxLienAdmin(admin.ModelAdmin):
-    list_display = ('property', 'lien_amount', 'lien_date')
+    list_display = ('id', 'property', 'lien_amount', 'lien_date')
     search_fields = ('property__address',)
 
 @admin.register(SalesInformation, site=admin_site)
 class SalesInformationAdmin(admin.ModelAdmin):
-    list_display = ('sale_date', 'sold_amount', 'sale_status')
+    list_display = ('id', 'sale_date', 'sold_amount', 'sale_status')
     search_fields = ('sale_date',)
 
 @admin.register(Lead, site=admin_site)
 class LeadAdmin(admin.ModelAdmin):
-    list_display = ('property', 'assigned_to', 'stage', 'deal_strength')
+    list_display = ('id', 'property', 'assigned_to', 'stage', 'deal_strength')
     search_fields = ('property__address', 'assigned_to')
