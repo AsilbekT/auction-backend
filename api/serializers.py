@@ -260,5 +260,5 @@ class GetLeadSerializer(serializers.ModelSerializer):
         model = Lead
         fields = [
             'id', 'assigned_to', 'stage', 'deal_strength', 'sales_information', 
-            'auction', 'property', 'ownership', 'created_at', 'updated_at'
+            'auction', 'property', 'ownership','owner', 'created_at', 'updated_at'
         ]
