@@ -203,17 +203,17 @@ class NestedPropertySerializer(serializers.ModelSerializer):
 
 
 class NestedContactInformationSerializer(serializers.ModelSerializer):
-    phones = PhoneSerializer(many=True, read_only=True)
-    emails = EmailSerializer(many=True, read_only=True)
+    phones = PhoneSerializer(many=True, read_only=True,source="phone_set")
+    emails = EmailSerializer(many=True, read_only=True,source="email_set")
 
     class Meta:
         model = ContactInformation
-        fields = ['id','phones','emails']
+        fields = '__all__'
 
 
 class OwnerSerializer(serializers.ModelSerializer):
-    contact_information = NestedContactInformationSerializer(many=True, read_only=True)
-    connection = ConnectionSerializer(many=True, read_only=True)
+    contact_information = NestedContactInformationSerializer(many=True, read_only=True,source="contactinformation_set")
+    connection = ConnectionSerializer(many=True, read_only=True, source='connection_set')
 
     class Meta:
         model = Owner
