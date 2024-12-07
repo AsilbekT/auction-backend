@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from .models import Lead, Property, Owner, Ownership, LegalProceeding, Auction, SalesInformation, Connection, ContactInformation, Phone, Email, MortgageAndDebt, TaxLien, DuplicateCheck
-
+from django.utils import timezone
 
 class SmallPhoneSerializer(serializers.ModelSerializer):
     class Meta:
@@ -125,12 +125,11 @@ class SmallLeadSerializer(serializers.ModelSerializer):
         model = Lead
         fields = ['id', 'assigned_to', 'stage', 'deal_strength']
 
-
 class FullLeadSerializer(serializers.ModelSerializer):
-    sales_information = SalesInformationSerializer(read_only=True)
-    auction = AuctionSerializer(read_only=True)
-    property = PropertySerializer(read_only=True)
-    ownership = OwnershipSerializer(read_only=True)
+    sales_information = serializers.PrimaryKeyRelatedField(queryset=SalesInformation.objects.all(), required=False, allow_null=True)
+    auction = serializers.PrimaryKeyRelatedField(queryset=Auction.objects.all(), required=False, allow_null=True)
+    property = serializers.PrimaryKeyRelatedField(queryset=Property.objects.all(), required=False, allow_null=True)
+    ownership = serializers.PrimaryKeyRelatedField(queryset=Ownership.objects.all(), required=False, allow_null=True)
 
     class Meta:
         model = Lead
@@ -138,3 +137,31 @@ class FullLeadSerializer(serializers.ModelSerializer):
             'id', 'assigned_to', 'stage', 'deal_strength', 'sales_information', 
             'auction', 'property', 'ownership', 'created_at', 'updated_at'
         ]
+
+    def validate(self, data):
+        # During updates, check if at least one field is provided
+        if self.instance and not any(data.get(field) for field in data):
+            raise serializers.ValidationError("At least one field must be provided for update.")
+        return data
+
+    def create(self, validated_data):
+        return Lead.objects.create(**validated_data)
+
+    def update(self, instance, validated_data):
+        print("updating")
+        instance.updated_at = timezone.now()  # Update the timestamp here rather than in viewset
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+        instance.save()
+        return instance
+
+
+class GetLeadSerializer(serializers.ModelSerializer):
+    sales_information = SalesInformationSerializer(read_only=True)
+    auction = AuctionSerializer(read_only=True)
+    property = PropertySerializer(read_only=True)
+    ownership = OwnershipSerializer(read_only=True)
+
+    class Meta:
+        model = Lead
+        fields = ['id', 'assigned_to', 'stage', 'deal_strength', 'sales_information', 'auction', 'property', 'ownership', 'created_at', 'updated_at']

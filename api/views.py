@@ -7,6 +7,7 @@ from .serializers import (
     ContactInformationSerializer,
     EmailSerializer,
     FullLeadSerializer,
+    GetLeadSerializer,
     OwnershipSerializer,
     PhoneSerializer,
     PropertySerializer,
@@ -148,26 +149,18 @@ class DuplicateCheckViewSet(viewsets.ModelViewSet):
         return True, "Duplicate check object created successfully."
 
 
-
 class LeadViewSet(viewsets.ModelViewSet):
     queryset = Lead.objects.all().order_by("-id")
-    serializer_class = SmallLeadSerializer
     permission_classes = [IsAuthenticated]
     pagination_class = CustomPagination
 
-
     def get_serializer_class(self):
-        if self.action == 'list':
+        if self.action in ['list']:
             return SmallLeadSerializer
-        elif self.action in ['retrieve', 'update', 'partial_update']:
-            return FullLeadSerializer
-        return SmallLeadSerializer
+        elif self.action in ['retrieve']:
+            return GetLeadSerializer
+        return FullLeadSerializer
 
-    def perform_create(self, serializer):
-        serializer.save()
-
-    def perform_update(self, serializer):
-        serializer.save(updated_at=timezone.now())
 
 
 class PhoneViewSet(viewsets.ModelViewSet):
