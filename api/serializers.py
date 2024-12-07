@@ -197,22 +197,9 @@ class FullLeadSerializer(serializers.ModelSerializer):
 
 
 
-
-class NestedTaxLienSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = TaxLien
-        fields = '__all__'
-
-
-class NestedMortgageAndDebtSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = MortgageAndDebt
-        fields = '__all__'
-
-
 class NestedPropertySerializer(serializers.ModelSerializer):
-    tax_liens = NestedTaxLienSerializer(many=True, read_only=True)
-    mortgages_and_debts = NestedMortgageAndDebtSerializer(many=True, read_only=True)
+    tax_liens = TaxLienSerializer(many=True, read_only=True)
+    mortgages_and_debts = MortgageAndDebtSerializer(many=True, read_only=True)
     legal_proceedings = LegalProceedingSerializer(many=True, read_only=True)
     dublicate_address = DuplicateCheckSerializer(read_only=True)
 
@@ -221,13 +208,6 @@ class NestedPropertySerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
-class NestedOwnerSerializer(serializers.ModelSerializer):
-    contact_information = ContactInformationSerializer(many=True, read_only=True)
-    ownerships = SmallOwnershipSerializer(many=True, read_only=True)
-
-    class Meta:
-        model = Owner
-        fields = '__all__'
 
 class NestedContactInformationSerializer(serializers.ModelSerializer):
     phones = PhoneSerializer(many=True, read_only=True)
@@ -239,7 +219,7 @@ class NestedContactInformationSerializer(serializers.ModelSerializer):
 
 
 class ExpandedOwnershipSerializer(serializers.ModelSerializer):
-    ownerships = NestedOwnerSerializer(many=True, read_only=True)
+    owner = OwnerSerializer(many=True, read_only=True)
     contact_information = NestedContactInformationSerializer(many=True, read_only=True)
     connections = ConnectionSerializer(many=True, read_only=True)
 
