@@ -143,7 +143,7 @@ class FullLeadSerializer(serializers.ModelSerializer):
         model = Lead
         fields = [
             'id', 'assigned_to', 'stage', 'deal_strength', 'sales_information', 
-            'auction', 'property','owner' 'created_at', 'updated_at'
+            'auction', 'property','owner', 'created_at', 'updated_at'
         ]
 
     def validate(self, data):
