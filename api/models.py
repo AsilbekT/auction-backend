@@ -34,17 +34,6 @@ class DuplicateCheck(models.Model):
         ]
 
 class Property(models.Model):
-    SINGLE_FAMILY = 'SF'
-    MULTI_FAMILY = 'MF'
-    COMMERCIAL = 'CM'
-    PROPERTY_TYPES = [
-        (SINGLE_FAMILY, 'Single Family'),
-        (MULTI_FAMILY, 'Multi Family'),
-        (COMMERCIAL, 'Commercial'),
-    ]
-
-    VACANT = 'V'
-    OCCUPIED = 'O'
     dublicate_address = models.ForeignKey(DuplicateCheck, on_delete=models.CASCADE, blank=True, null=True)
     address = models.CharField(max_length=255, help_text="The full street address of the property")
     city = models.CharField(max_length=100, blank=True, null=True, help_text="The city where the property is located")
@@ -52,7 +41,7 @@ class Property(models.Model):
     zip_code = models.CharField(max_length=20, blank=True, null=True, help_text="The postal code for the property")
     county = models.CharField(max_length=100, blank=True, null=True, help_text="The county where the property is located")
     apn = models.CharField(max_length=100, blank=True, null=True, help_text="The assessor's parcel number, unique identifier for the property")
-    property_type = models.CharField(max_length=2, blank=True, null=True, help_text="The type of property, e.g., Single Family, Multi Family, Commercial")
+    property_type = models.CharField(max_length=20, blank=True, null=True, help_text="The type of property, e.g., Single Family, Multi Family, Commercial")
     lot_size = models.FloatField(default=0, help_text="The size of the property lot in square feet")
     year_built = models.IntegerField(default=0, help_text="The year in which the property was built")
     zillow_link = models.URLField(blank=True, null=True, help_text="A direct link to the property's Zillow page, if available")
@@ -60,6 +49,7 @@ class Property(models.Model):
     beds = models.IntegerField(default=0, help_text="Number of bedrooms in the property")
     baths = models.FloatField(default=0, help_text="Number of bathrooms in the property")
     zestimate = models.DecimalField(max_digits=10, decimal_places=2, default=0, help_text="Zillow's estimated market value for the property")
+    equity = models.DecimalField(max_digits=12, default=0, decimal_places=2, help_text="Equity amount involved in the property")
     square_footage = models.IntegerField(default=0, help_text="Total interior square footage of the property")
     created_at = models.DateTimeField(auto_now_add=True, blank=True, null=True)
     updated_at = models.DateTimeField(auto_now=True, blank=True, null=True)
@@ -85,12 +75,12 @@ class Property(models.Model):
 class Owner(models.Model):
     first_name = models.CharField(max_length=100, blank=True, null=True, help_text="The first name of the property owner")
     last_name = models.CharField(max_length=100, help_text="The last name of the property owner")
-    dob = models.DateField(help_text="Date of birth of the property owner")
+    dob = models.DateField(blank=True, null=True , help_text="Date of birth of the property owner")
     dod = models.DateField(blank=True, null=True, help_text="Date of death of the property owner, if applicable")
-    mailing_address = models.CharField(max_length=255, help_text="The mailing address of the property owner")
-    mailing_city = models.CharField(max_length=100, help_text="The city of the mailing address")
-    mailing_state = models.CharField(max_length=100, help_text="The state of the mailing address")
-    mailing_zip = models.CharField(max_length=20, help_text="The ZIP code of the mailing address")
+    mailing_address = models.CharField(blank=True, null=True ,max_length=255, help_text="The mailing address of the property owner")
+    mailing_city = models.CharField(blank=True, null=True ,max_length=100, help_text="The city of the mailing address")
+    mailing_state = models.CharField(blank=True, null=True ,max_length=100, help_text="The state of the mailing address")
+    mailing_zip = models.CharField(blank=True, null=True ,max_length=20, help_text="The ZIP code of the mailing address")
     created_at = models.DateTimeField(auto_now_add=True, blank=True, null=True)
     updated_at = models.DateTimeField(auto_now=True, blank=True, null=True)
 
@@ -106,36 +96,12 @@ class Owner(models.Model):
             models.Index(fields=['mailing_state'], name='idx_mailing_state')
         ]
 
-class Ownership(models.Model):
-    owner = models.ForeignKey(Owner, on_delete=models.CASCADE, related_name='ownerships')
-    percentage_owned = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)  # Optional
-    date_acquired = models.DateField()
-
-
-    class Meta:
-        db_table = 'ownerships'
-        verbose_name = "Ownership"
-        verbose_name_plural = "Ownerships"
-        indexes = [
-            models.Index(fields=['owner'], name='idx_owner'),
-            models.Index(fields=['date_acquired'], name='idx_date_acquired')
-        ]
-
-    def __str__(self):
-        return self.owner.last_name
     
 class LegalProceeding(models.Model):
-    FORECLOSURE = 'FC'
-    LIEN = 'LN'
-    CASE_TYPES = [
-        (FORECLOSURE, 'Foreclosure'),
-        (LIEN, 'Lien'),
-    ]
     property = models.ForeignKey(Property, on_delete=models.CASCADE, related_name='legal_proceedings',  help_text="The property involved in the legal proceeding")
-    document_name = models.CharField(max_length=255, help_text="The name of the legal document")
-    case_type = models.CharField(max_length=2, blank=True, null=True, help_text="The type of legal case, e.g., Foreclosure or Lien")
+    document_name = models.CharField(max_length=255, blank=True, null=True , help_text="The name of the legal document")
+    case_type = models.CharField(max_length=20, blank=True, null=True, help_text="The type of legal case, e.g., Foreclosure or Lien")
     total_amount_owed = models.DecimalField(max_digits=12, default=0, decimal_places=2, help_text="The total amount owed in the case")
-    equity = models.DecimalField(max_digits=12, default=0, decimal_places=2, help_text="Equity amount involved in the legal proceeding")
     date_of_filing = models.DateField(blank=True, null=True, help_text="The date on which the legal case was filed")
     plaintiff = models.CharField(blank=True, null=True, max_length=255, help_text="The plaintiff in the legal case")
     plaintiff_attorney_firm = models.CharField(max_length=255, blank=True, null=True, help_text="The law firm representing the plaintiff")
@@ -195,7 +161,7 @@ class Connection(models.Model):
     ]
 
     owner = models.ForeignKey(Owner, on_delete=models.CASCADE, help_text="The owner associated with this connection")
-    connection_type = models.CharField(max_length=10, help_text="The type of connection, e.g., Associate, Relative, Neighbor")
+    connection_type = models.CharField(max_length=10, choices = CONNECTION_TYPES, help_text="The type of connection, e.g., Associate, Relative, Neighbor")
     name = models.CharField(max_length=255, help_text="Full name of the connected individual")
     address = models.CharField(max_length=255, help_text="Address of the connected individual")
     phone = models.CharField(max_length=20, help_text="Phone number of the connected individual")
@@ -208,17 +174,9 @@ class Connection(models.Model):
     class Meta:
         db_table = 'owner_connections' 
 
-class ContactInformation(models.Model):
-    owner = models.ForeignKey(Owner, on_delete=models.CASCADE, help_text="The owner for whom this contact information applies")
-    
-    def __str__(self):
-        return self.owner.first_name
-    
-    class Meta:
-        db_table = 'contact_information' 
 
 class Phone(models.Model):
-    contact_information = models.ForeignKey(ContactInformation, on_delete=models.CASCADE, help_text="The contact information record to which this phone number belongs")
+    owner = models.ForeignKey(Owner, on_delete=models.CASCADE,default=False, help_text="The phone record belongs to which owner")
     phone_type = models.CharField(max_length=100, help_text="The type of phone, e.g., Mobile, Home, Work")
     phone_connected = models.BooleanField(default=False, help_text="Indicator of whether the phone number is active and connected")
     phone_number = models.CharField(max_length=20, help_text="The phone number")
@@ -229,10 +187,10 @@ class Phone(models.Model):
         return self.phone_number
 
     class Meta:
-        db_table = 'contact_phones' 
+        db_table = 'owner_phones' 
 
 class Email(models.Model):
-    contact_information = models.ForeignKey(ContactInformation, on_delete=models.CASCADE, help_text="The contact information record to which this email address belongs")
+    owner = models.ForeignKey(Owner, on_delete=models.CASCADE, default=False, help_text="The email record belongs to which owner")
     email_address = models.EmailField(help_text="The email address")
     created_at = models.DateTimeField(auto_now_add=True, blank=True, null=True)
     updated_at = models.DateTimeField(auto_now=True, blank=True, null=True)
@@ -241,21 +199,14 @@ class Email(models.Model):
         return self.email_address
 
     class Meta:
-        db_table = 'contact_emails'
+        db_table = 'owner_emails'
 
 class MortgageAndDebt(models.Model):
-    PRIMARY = 'PR'
-    SECONDARY = 'SC'
-    LOAN_TYPES = [
-        (PRIMARY, 'Primary'),
-        (SECONDARY, 'Secondary'),
-    ]
-
     property = models.ForeignKey(Property, on_delete=models.CASCADE, help_text="The property associated with this mortgage or debt", related_name='mortgages_and_debts')
     mortgage_date = models.DateField(blank=True, null=True, help_text="The date the mortgage was registered")
     mortgage_amount = models.DecimalField(max_digits=12, default=0, decimal_places=2, help_text="The amount of the mortgage")
     interest_rate = models.DecimalField(max_digits=5, default=0, decimal_places=2, help_text="The interest rate of the mortgage")
-    loan_type = models.CharField(max_length=2, blank=True, null=True, help_text="The type of loan, e.g., Primary, Secondary")
+    loan_type = models.CharField(max_length=20, blank=True, null=True, help_text="The type of loan, e.g., Primary, Secondary")
     lender_name = models.CharField(max_length=255, blank=True, null=True, help_text="The name of the lender")
     created_at = models.DateTimeField(auto_now_add=True, blank=True, null=True)
     updated_at = models.DateTimeField(auto_now=True, blank=True, null=True)
@@ -285,15 +236,9 @@ class TaxLien(models.Model):
 
 
 class SalesInformation(models.Model):
-    PENDING = 'PD'
-    CLOSED = 'CL'
-    SALE_STATUSES = [
-        (PENDING, 'Pending'),
-        (CLOSED, 'Closed'),
-    ]
     sale_date = models.DateField(blank=True, null=True, help_text="The date on which the sale is completed or expected to be completed")
     sold_amount = models.DecimalField(max_digits=12, default=0, decimal_places=2, help_text="The amount for which the property was sold")
-    sale_status = models.CharField(max_length=2, blank=True, null=True, help_text="The status of the sale, e.g., Pending or Closed")
+    sale_status = models.CharField(max_length=20, blank=True, null=True, help_text="The status of the sale, e.g., Pending or Closed")
     created_at = models.DateTimeField(auto_now_add=True, blank=True, null=True)
     updated_at = models.DateTimeField(auto_now=True, blank=True, null=True)
 
@@ -306,16 +251,12 @@ class SalesInformation(models.Model):
 
 
 class Lead(models.Model):
-    STAGES = [
-        ('IN', 'Initial'),
-        ('FU', 'Follow-Up'),
-    ]
     sales_information = models.ForeignKey(SalesInformation, on_delete=models.CASCADE, blank=True, null=True)
     auction = models.ForeignKey(Auction, on_delete=models.CASCADE, blank=True, null=True)
     property = models.ForeignKey(Property, on_delete=models.CASCADE, blank=True, null=True)
-    ownership = models.ForeignKey(Ownership, models.CASCADE, blank=True, null=True)
+    owner = models.ForeignKey(Owner, models.CASCADE, blank=True, null=True)
     assigned_to = models.CharField(max_length=100, blank=True, null=True)
-    stage = models.CharField(max_length=2, blank=True, null=True, help_text="The stage of the sales process, e.g., Initial or Follow-Up")
+    stage = models.CharField(max_length=20, blank=True, null=True, help_text="The stage of the sales process, e.g., Initial or Follow-Up")
     deal_strength = models.CharField(max_length=100, blank=True, null=True, help_text="An assessment of the deal strength or likelihood to close successfully")
     created_at = models.DateTimeField(auto_now_add=True, blank=True, null=True)
     updated_at = models.DateTimeField(auto_now=True, blank=True, null=True)
