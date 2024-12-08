@@ -90,14 +90,25 @@ WSGI_APPLICATION = 'config.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
-
+"""
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': BASE_DIR / "db.sqlite3",
     }
 }
+"""
 
+DATABASES = {
+    'default' : {
+        'ENGINE' : 'django.db.backends.postgresql',
+        'NAME' : 'auction_backend_db',
+        'USER' : 'auction_backend_user',
+        'PASSWORD' : 'ViOTE1ZWRkMWY0YnR1bG9hb3VuOHd0Njk3YTc1MTI0OTE',
+        'HOST' : '184.72.86.114',
+        'PORT' : '5432'
+    }
+}
 
 
 # Password validation

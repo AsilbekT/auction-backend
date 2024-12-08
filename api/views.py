@@ -208,6 +208,13 @@ class LeadViewSet(viewsets.ModelViewSet):
         elif self.action in ['retrieve']:
             return GetLeadSerializer
         return FullLeadSerializer
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        sort = self.request.query_params.get('sort', None)
+        if sort:
+            sort_fields = sort.split(',')
+            queryset = queryset.order_by(*sort_fields)
+        return queryset
 
 
 
