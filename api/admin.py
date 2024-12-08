@@ -14,8 +14,8 @@ admin_site.register(User, UserAdmin)
 admin_site.register(Group, GroupAdmin)
 
 from .models import (
-    DuplicateCheck, Property, Owner, Ownership, LegalProceeding,
-    Auction, Connection, ContactInformation, Phone, Email,
+    DuplicateCheck, Property, Owner, LegalProceeding,
+    Auction, Connection, Phone, Email,
     MortgageAndDebt, TaxLien, SalesInformation, Lead
 )
 
@@ -37,10 +37,6 @@ class OwnerAdmin(admin.ModelAdmin):
     search_fields = ('first_name', 'last_name', 'mailing_address')
     list_filter = ('mailing_state',)
 
-@admin.register(Ownership, site=admin_site)
-class OwnershipAdmin(admin.ModelAdmin):
-    list_display = ('id', 'owner', 'percentage_owned', 'date_acquired')
-    search_fields = ('owner__first_name', 'owner__last_name')
 
 @admin.register(LegalProceeding, site=admin_site)
 class LegalProceedingAdmin(admin.ModelAdmin):
@@ -58,19 +54,14 @@ class ConnectionAdmin(admin.ModelAdmin):
     list_display = ('id', 'owner', 'connection_type', 'name')
     search_fields = ('owner__first_name', 'owner__last_name', 'name')
 
-@admin.register(ContactInformation, site=admin_site)
-class ContactInformationAdmin(admin.ModelAdmin):
-    list_display = ('id', 'owner',)
-    search_fields = ('owner__first_name', 'owner__last_name')
-
 @admin.register(Phone, site=admin_site)
 class PhoneAdmin(admin.ModelAdmin):
-    list_display = ('id', 'phone_number', 'phone_type', 'contact_information')
+    list_display = ('id', 'phone_number', 'phone_type')
     search_fields = ('phone_number',)
 
 @admin.register(Email, site=admin_site)
 class EmailAdmin(admin.ModelAdmin):
-    list_display = ('id', 'email_address', 'contact_information')
+    list_display = ('id', 'email_address')
     search_fields = ('email_address',)
 
 @admin.register(MortgageAndDebt, site=admin_site)

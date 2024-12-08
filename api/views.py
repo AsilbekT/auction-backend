@@ -2,14 +2,11 @@ from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from django.utils import timezone
 from rest_framework.permissions import IsAuthenticated
-from .models import ContactInformation, Email, Lead, Ownership, Phone, Property, Owner, LegalProceeding, Auction, SalesInformation, Connection, MortgageAndDebt, TaxLien, DuplicateCheck
+from .models import  Email, Lead, Phone, Property, Owner, LegalProceeding, Auction, SalesInformation, Connection, MortgageAndDebt, TaxLien, DuplicateCheck
 from .serializers import (
-    BasicContactInformationSerializer,
-    ContactInformationSerializer,
     EmailSerializer,
     FullLeadSerializer,
     GetLeadSerializer,
-    OwnershipSerializer,
     PhoneSerializer,
     OwnerSerializer,
     LegalProceedingSerializer,
@@ -235,22 +232,6 @@ class EmailViewSet(viewsets.ModelViewSet):
         return EmailSerializer
 
 
-class ContactInformationViewSet(viewsets.ModelViewSet):
-    queryset = ContactInformation.objects.all().order_by("-id")
-    permission_classes = [IsAuthenticated]
-    pagination_class = CustomPagination
-
-    def get_serializer_class(self):
-        if self.action in ['retrieve', 'list']:
-            return ContactInformationSerializer
-        return BasicContactInformationSerializer
-
-
-class OwnershipViewSet(viewsets.ModelViewSet):
-    queryset = Ownership.objects.all().order_by("-id")
-    serializer_class = OwnershipSerializer
-    permission_classes = [IsAuthenticated]
-    pagination_class = CustomPagination
 
 
 
