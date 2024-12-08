@@ -128,11 +128,6 @@ class DuplicateCheckSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
-class SmallLeadSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Lead
-        fields = ['id', 'assigned_to', 'stage', 'deal_strength']
-
 class FullLeadSerializer(serializers.ModelSerializer):
     sales_information = serializers.PrimaryKeyRelatedField(queryset=SalesInformation.objects.all(), required=False, allow_null=True)
     auction = serializers.PrimaryKeyRelatedField(queryset=Auction.objects.all(), required=False, allow_null=True)
@@ -176,6 +171,16 @@ class NestedPropertySerializer(serializers.ModelSerializer):
         model = Property
         fields = '__all__'
 
+class PropertySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Property
+        fields = ['id', 'address', 'zestimate']  
+
+class SmallLeadSerializer(serializers.ModelSerializer):
+    property = PropertySerializer(read_only=True)
+    class Meta:
+        model = Lead
+        fields = ['id', 'property','assigned_to', 'stage', 'deal_strength','created_at','updated_at']
 
 
 class NestedOwnerSerializer(serializers.ModelSerializer):
