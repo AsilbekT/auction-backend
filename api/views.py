@@ -179,16 +179,16 @@ class DuplicateCheckViewSet(viewsets.ModelViewSet):
         if standardized_address is None:
             return False, "Invalid address format"
 
-        existing_duplicate = DuplicateCheck.objects.filter(reformatted_address=standardized_address)
+        existing_duplicate = DuplicateCheck.objects.filter(reformatted_address=standardized_address,is_auction=is_auction)
         if existing_duplicate.exists():
             duplicate_obj = existing_duplicate.last()
             is_important, priority_message = check_priority(
                 source_name,
-                duplicate_obj,
-                is_auction
+                duplicate_obj
             )
             
             if is_important:
+                existing_duplicate.first().delete()
                 return True, "Duplicate address updated with new information"
             
             return False, priority_message
@@ -208,15 +208,28 @@ class LeadViewSet(viewsets.ModelViewSet):
         elif self.action in ['retrieve']:
             return GetLeadSerializer
         return FullLeadSerializer
+    
     def get_queryset(self):
         queryset = super().get_queryset()
+        query_params = self.request.query_params
+        filters = {}
+
+        for key, value in query_params.items():
+            if "__" in key: 
+                filters[key] = value
+
+        if filters:
+            try:
+                queryset = queryset.filter(**filters)
+            except Exception as e:
+                raise ValidationError(f"Error applying filters: {str(e)}")
+            
         sort = self.request.query_params.get('sort', None)
         if sort:
             sort_fields = sort.split(',')
             queryset = queryset.order_by(*sort_fields)
+
         return queryset
-
-
 
 class PhoneViewSet(viewsets.ModelViewSet):
     queryset = Phone.objects.all().order_by("-id")
