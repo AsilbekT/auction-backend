@@ -229,7 +229,7 @@ class LeadViewSet(viewsets.ModelViewSet):
         connections_data = data.pop("connections", [])
         emails_data = data.pop("emails", [])
         phones_data = data.pop("phones", [])
-        current_user = request.user
+        current_user_id = request.user.id
 
         def create_related_data(serializer_class, related_data):
             if related_data:
@@ -300,7 +300,7 @@ class LeadViewSet(viewsets.ModelViewSet):
             "property": property_id,
             "auction": auction_id,
             "sales_information" : salesInformation_id,
-            "created_by" : current_user
+            "created_by" : current_user_id
         }
         lead_serializer = FullLeadSerializer(data=lead_data)
         lead_serializer.is_valid(raise_exception=True)
