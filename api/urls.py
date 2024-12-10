@@ -8,13 +8,15 @@ from .views import (
         LegalProceedingViewSet,
         AuctionViewSet,
         SalesInformationViewSet,
-        ConnectionViewSet,
+        ConnectionViewSet, 
         MortgageAndDebtViewSet,
         TaxLienViewSet,
-        DuplicateCheckViewSet
+        DuplicateCheckViewSet,
+        UserViewSet
     )
 
 router = DefaultRouter()
+router.register(r'users', UserViewSet)
 router.register(r'properties', PropertyViewSet)
 router.register(r'owners', OwnerViewSet)
 router.register(r'legal-proceedings', LegalProceedingViewSet)

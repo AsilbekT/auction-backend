@@ -1,6 +1,11 @@
 from rest_framework import serializers
-from .models import Lead, Property, Owner, LegalProceeding, Auction, SalesInformation, Connection, Phone, Email, MortgageAndDebt, TaxLien, DuplicateCheck
+from .models import Lead, Property, Owner, LegalProceeding, Auction, SalesInformation, Connection, Phone, Email, MortgageAndDebt, TaxLien, DuplicateCheck, User
 from django.utils import timezone
+
+class UserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ['id', 'username', 'email', 'first_name', 'last_name'] 
 
 class SmallPhoneSerializer(serializers.ModelSerializer):
     class Meta:

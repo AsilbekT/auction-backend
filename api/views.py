@@ -2,8 +2,9 @@ from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from django.utils import timezone
 from rest_framework.permissions import IsAuthenticated
-from .models import  Email, Lead, Phone, Property, Owner, LegalProceeding, Auction, SalesInformation, Connection, MortgageAndDebt, TaxLien, DuplicateCheck
+from .models import  Email, Lead, Phone, Property, Owner, LegalProceeding, Auction, SalesInformation, Connection, MortgageAndDebt, TaxLien, DuplicateCheck,User
 from .serializers import (
+    UserSerializer,
     EmailSerializer,
     FullLeadSerializer,
     GetLeadSerializer,
@@ -85,6 +86,11 @@ class LegalProceedingViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
     pagination_class = CustomPagination
 
+class UserViewSet(viewsets.ModelViewSet):
+    queryset = User.objects.all().order_by("-id")
+    serializer_class = UserSerializer
+    permission_classes = [IsAuthenticated]
+    pagination_class = CustomPagination
 
 class AuctionViewSet(viewsets.ModelViewSet):
     queryset = Auction.objects.all().order_by("-id")
@@ -209,6 +215,100 @@ class LeadViewSet(viewsets.ModelViewSet):
             return GetLeadSerializer
         return FullLeadSerializer
     
+    def create(self, request, *args, **kwargs):
+        data = request.data
+
+        duplicate_check_data = data.pop("duplicate_check", None)
+        owner_data = data.pop("owner", None)
+        property_data = data.pop("property", None)
+        auction_data = data.pop("auction", None)
+        taxlien_data = data.pop("taxlien", None)
+        mortgageanddebt_data = data.pop("mortgageanddebt", None)
+        legalproceeding_data = data.pop("legalproceeding", None)
+        salesInformation_data = data.pop("salesInformation", None)
+        connections_data = data.pop("connections", [])
+        emails_data = data.pop("emails", [])
+        phones_data = data.pop("phones", [])
+        current_user = request.user
+
+        def create_related_data(serializer_class, related_data):
+            if related_data:
+                serializer = serializer_class(data=related_data)
+                serializer.is_valid(raise_exception=True)
+                instance = serializer.save()
+                return instance.id
+            return None
+
+        duplicate_check_id = None
+        if duplicate_check_data:
+            duplicate_serializer = DuplicateCheckSerializer(data=duplicate_check_data)
+            duplicate_serializer.is_valid(raise_exception=True)
+            duplicate_view = DuplicateCheckViewSet()
+            success, message = duplicate_view.perform_create(duplicate_serializer)
+            if not success:
+                return Response({"detail": message}, status=status.HTTP_400_BAD_REQUEST)
+            duplicate_check_id = duplicate_serializer.instance.id
+        
+        owner_id = None
+        if owner_data:
+            owner_serializer = WriteOwnerSerializer(data=owner_data)
+            owner_serializer.is_valid(raise_exception=True)
+            owner = owner_serializer.save()
+            owner_id = owner.id
+
+            for phone in phones_data:
+                phone["owner"] = owner_id
+                create_related_data(PhoneSerializer, phone)
+
+            for email in emails_data:
+                email["owner"] = owner_id
+                create_related_data(EmailSerializer, email)
+
+            for connection in connections_data:
+                connection["owner"] = owner_id
+                create_related_data(ConnectionSerializer, connection)
+
+        property_id = None
+        if property_data:
+            property_data["dublicate_address"] = duplicate_check_id
+            property_serializer = WritePropertySerializer(data=property_data)
+            property_serializer.is_valid(raise_exception=True)
+            property = property_serializer.save()
+            property_id = property.id
+
+            if legalproceeding_data:
+                legalproceeding_data["property"] = property_id
+                create_related_data(LegalProceedingSerializer, legalproceeding_data)
+            if mortgageanddebt_data:
+                mortgageanddebt_data["property"] = property_id
+                create_related_data(MortgageAndDebtSerializer, mortgageanddebt_data)
+            if taxlien_data:
+                taxlien_data["property"] = property_id
+                create_related_data(TaxLienSerializer, taxlien_data)
+
+        auction_id = None
+        if auction_data :
+            auction_id = create_related_data(WriteAuctionSerializer, auction_data)
+
+        salesInformation_id = None    
+        if salesInformation_data :
+            salesInformation_id = create_related_data(SalesInformationSerializer, salesInformation_data)
+
+        lead_data = {
+            **data,
+            "owner": owner_id,
+            "property": property_id,
+            "auction": auction_id,
+            "sales_information" : salesInformation_id,
+            "created_by" : current_user
+        }
+        lead_serializer = FullLeadSerializer(data=lead_data)
+        lead_serializer.is_valid(raise_exception=True)
+        lead_serializer.save()
+
+        return Response(lead_serializer.data, status=status.HTTP_201_CREATED)
+
+
     def get_queryset(self):
         queryset = super().get_queryset()
         query_params = self.request.query_params
