@@ -1,6 +1,6 @@
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
-from django.utils import timezone
+from django.db import transaction
 from rest_framework.permissions import IsAuthenticated
 from .models import  Email, Lead, Phone, Property, Owner, LegalProceeding, Auction, SalesInformation, Connection, MortgageAndDebt, TaxLien, DuplicateCheck,User
 from .serializers import (
@@ -231,82 +231,118 @@ class LeadViewSet(viewsets.ModelViewSet):
         phones_data = data.pop("phones", [])
         current_user_id = request.user.id
 
-        def create_related_data(serializer_class, related_data):
-            if related_data:
-                serializer = serializer_class(data=related_data)
-                serializer.is_valid(raise_exception=True)
-                instance = serializer.save()
-                return instance.id
-            return None
+        owner_id = None
+        property_id = None
+        auction_id = None
+        sales_information_id = None
 
-        duplicate_check_id = None
+        serializers = {}
+
         if duplicate_check_data:
             duplicate_serializer = DuplicateCheckSerializer(data=duplicate_check_data)
             duplicate_serializer.is_valid(raise_exception=True)
-            duplicate_view = DuplicateCheckViewSet()
-            success, message = duplicate_view.perform_create(duplicate_serializer)
-            if not success:
-                return Response({"detail": message}, status=status.HTTP_400_BAD_REQUEST)
-            duplicate_check_id = duplicate_serializer.instance.id
-        
-        owner_id = None
+            serializers["duplicate"] = duplicate_serializer
+
         if owner_data:
             owner_serializer = WriteOwnerSerializer(data=owner_data)
             owner_serializer.is_valid(raise_exception=True)
-            owner = owner_serializer.save()
-            owner_id = owner.id
-
+            serializers["owner"] = owner_serializer
             for phone in phones_data:
-                phone["owner"] = owner_id
-                create_related_data(PhoneSerializer, phone)
+                phone_serializer = PhoneSerializer(data=phone)
+                phone_serializer.is_valid(raise_exception=True)
+                serializers.setdefault("phones", []).append(phone_serializer)
 
             for email in emails_data:
-                email["owner"] = owner_id
-                create_related_data(EmailSerializer, email)
+                email_serializer = EmailSerializer(data=email)
+                email_serializer.is_valid(raise_exception=True)
+                serializers.setdefault("emails", []).append(email_serializer)
 
             for connection in connections_data:
-                connection["owner"] = owner_id
-                create_related_data(ConnectionSerializer, connection)
+                connection_serializer = ConnectionSerializer(data=connection)
+                connection_serializer.is_valid(raise_exception=True)
+                serializers.setdefault("connections", []).append(connection_serializer)
 
-        property_id = None
         if property_data:
-            property_data["dublicate_address"] = duplicate_check_id
             property_serializer = WritePropertySerializer(data=property_data)
             property_serializer.is_valid(raise_exception=True)
-            property = property_serializer.save()
-            property_id = property.id
+            serializers["property"] = property_serializer
 
             if legalproceeding_data:
-                legalproceeding_data["property"] = property_id
-                create_related_data(LegalProceedingSerializer, legalproceeding_data)
+                legalproceeding_serializer = LegalProceedingSerializer(data=legalproceeding_data)
+                legalproceeding_serializer.is_valid(raise_exception=True)
+                serializers["legalproceeding"] = legalproceeding_serializer
+
             if mortgageanddebt_data:
-                mortgageanddebt_data["property"] = property_id
-                create_related_data(MortgageAndDebtSerializer, mortgageanddebt_data)
+                mortgageanddebt_serializer = MortgageAndDebtSerializer(data=mortgageanddebt_data)
+                mortgageanddebt_serializer.is_valid(raise_exception=True)
+                serializers["mortgageanddebt"] = mortgageanddebt_serializer
+
             if taxlien_data:
-                taxlien_data["property"] = property_id
-                create_related_data(TaxLienSerializer, taxlien_data)
+                taxlien_serializer = TaxLienSerializer(data=taxlien_data)
+                taxlien_serializer.is_valid(raise_exception=True)
+                serializers["taxlien"] = taxlien_serializer
 
-        auction_id = None
-        if auction_data :
-            auction_id = create_related_data(WriteAuctionSerializer, auction_data)
+        if auction_data:
+            auction_serializer = WriteAuctionSerializer(data=auction_data)
+            auction_serializer.is_valid(raise_exception=True)
+            serializers["auction"] = auction_serializer
 
-        salesInformation_id = None    
-        if salesInformation_data :
-            salesInformation_id = create_related_data(SalesInformationSerializer, salesInformation_data)
+        if salesInformation_data:
+            sales_information_serializer = SalesInformationSerializer(data=salesInformation_data)
+            sales_information_serializer.is_valid(raise_exception=True)
+            serializers["salesInformation"] = sales_information_serializer
 
         lead_data = {
             **data,
-            "owner": owner_id,
-            "property": property_id,
-            "auction": auction_id,
-            "sales_information" : salesInformation_id,
-            "created_by" : current_user_id
+            "owner": None,
+            "property": None,
+            "auction": None,
+            "sales_information": None,
+            "created_by": current_user_id,
         }
         lead_serializer = FullLeadSerializer(data=lead_data)
         lead_serializer.is_valid(raise_exception=True)
-        lead_serializer.save()
+        serializers["lead"] = lead_serializer
+
+        with transaction.atomic():
+            duplicate_check_id = serializers.get("duplicate").save().id if "duplicate" in serializers else None
+
+            if "owner" in serializers:
+                owner = serializers["owner"].save()
+                owner_id = owner.id
+                for serializer in serializers.get("phones", []):
+                    serializer.save(owner=owner)
+                for serializer in serializers.get("emails", []):
+                    serializer.save(owner=owner)
+                for serializer in serializers.get("connections", []):
+                    serializer.save(owner=owner)
+
+            if "property" in serializers:
+                property_data["dublicate_address"] = duplicate_check_id
+                property = serializers["property"].save()
+                property_id = property.id
+
+                if "legalproceeding" in serializers:
+                    serializers["legalproceeding"].save(property=property)
+                if "mortgageanddebt" in serializers:
+                    serializers["mortgageanddebt"].save(property=property)
+                if "taxlien" in serializers:
+                    serializers["taxlien"].save(property=property)
+
+            auction_id = serializers.get("auction").save().id if "auction" in serializers else None
+            sales_information_id = serializers.get("salesInformation").save().id if "salesInformation" in serializers else None
+
+            lead_serializer = serializers["lead"]
+            lead_serializer.save(
+                owner=owner_id,
+                property=property_id,
+                auction=auction_id,
+                sales_information=sales_information_id,
+                created_by = current_user_id
+            )
 
         return Response(lead_serializer.data, status=status.HTTP_201_CREATED)
+
 
 
     def get_queryset(self):
