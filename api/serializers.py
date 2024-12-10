@@ -17,8 +17,6 @@ class PhoneSerializer(serializers.ModelSerializer):
         model = Phone
         fields = '__all__'
 
-
-
 class EmailSerializer(serializers.ModelSerializer):
     class Meta:
         model = Email
@@ -110,10 +108,7 @@ class WritePropertySerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Property
-        fields = [
-            'id', 'address', 'city', 'state', 'zip_code', 'beds', 'baths',
-            'dublicate_address', 'lot_size', 'year_built', 'property_type'
-        ]
+        fields = '__all__'
 
     def validate(self, data):
         if data.get('dublicate_address') and not DuplicateCheck.objects.filter(id=data['dublicate_address'].id).exists():
@@ -138,13 +133,10 @@ class FullLeadSerializer(serializers.ModelSerializer):
     auction = serializers.PrimaryKeyRelatedField(queryset=Auction.objects.all(), required=False, allow_null=True)
     property = serializers.PrimaryKeyRelatedField(queryset=Property.objects.all(), required=False, allow_null=True)
     owner = serializers.PrimaryKeyRelatedField(queryset=Owner.objects.all(), required=False, allow_null=True)
-
+    created_by = serializers.PrimaryKeyRelatedField(queryset=User.objects.all(),required=False, allow_null=True)
     class Meta:
         model = Lead
-        fields = [
-            'id', 'assigned_to', 'stage', 'deal_strength', 'sales_information', 
-            'auction', 'property','owner', 'created_at', 'updated_at'
-        ]
+        fields = '__all__'
 
     def validate(self, data):
         # During updates, check if at least one field is provided
@@ -185,7 +177,7 @@ class SmallLeadSerializer(serializers.ModelSerializer):
     property = PropertySerializer(read_only=True)
     class Meta:
         model = Lead
-        fields = ['id', 'property','assigned_to', 'stage', 'deal_strength','created_at','updated_at']
+        fields = ['id', 'property','assigned_to', 'stage', 'deal_strength','created_by','created_at','updated_at']
 
 
 class NestedOwnerSerializer(serializers.ModelSerializer):
@@ -204,10 +196,6 @@ class GetLeadSerializer(serializers.ModelSerializer):
     auction = ReadAuctionSerializer(read_only=True)
     property = NestedPropertySerializer(read_only=True)
     owner = NestedOwnerSerializer(read_only=True)
-
     class Meta:
         model = Lead
-        fields = [
-            'id', 'assigned_to', 'stage', 'deal_strength', 'sales_information', 
-            'auction', 'property', 'owner', 'created_at', 'updated_at'
-        ]
+        fields = '__all__'
