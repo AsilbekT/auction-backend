@@ -15,7 +15,7 @@ class DuplicateCheck(models.Model):
         ("ASAP", 'asap'),
     ]
 
-    reformatted_address = models.CharField(max_length=255, blank=True, null=True)
+    reformatted_address = models.CharField(max_length=255)
     source_name = models.CharField(max_length=20, choices=SOURCE_NAME)
     is_auction = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True, blank=True, null=True)
@@ -98,7 +98,7 @@ class Owner(models.Model):
 
     
 class LegalProceeding(models.Model):
-    property = models.ForeignKey(Property, on_delete=models.CASCADE, related_name='legal_proceedings',  help_text="The property involved in the legal proceeding")
+    property = models.ForeignKey(Property, on_delete=models.CASCADE,null=True,blank=True, related_name='legal_proceedings',  help_text="The property involved in the legal proceeding")
     document_name = models.CharField(max_length=255, blank=True, null=True , help_text="The name of the legal document")
     case_type = models.CharField(max_length=50, blank=True, null=True, help_text="The type of legal case, e.g., Foreclosure or Lien")
     total_amount_owed = models.DecimalField(max_digits=12, default=0, decimal_places=2, help_text="The total amount owed in the case")
@@ -162,9 +162,9 @@ class Connection(models.Model):
 
     owner = models.ForeignKey(Owner, on_delete=models.CASCADE, help_text="The owner associated with this connection")
     connection_type = models.CharField(max_length=10, choices = CONNECTION_TYPES, help_text="The type of connection, e.g., Associate, Relative, Neighbor")
-    name = models.CharField(max_length=255, help_text="Full name of the connected individual")
-    address = models.CharField(max_length=255, help_text="Address of the connected individual")
-    phone = models.CharField(max_length=20, help_text="Phone number of the connected individual")
+    name = models.CharField(max_length=255, help_text="Full name of the connected individual",null=True,blank=True)
+    address = models.CharField(max_length=255, help_text="Address of the connected individual",null=True,blank=True)
+    phone = models.CharField(max_length=20, help_text="Phone number of the connected individual",null=True,blank=True)
     created_at = models.DateTimeField(auto_now_add=True, blank=True, null=True)
     updated_at = models.DateTimeField(auto_now=True, blank=True, null=True)
 
@@ -176,9 +176,9 @@ class Connection(models.Model):
 
 
 class Phone(models.Model):
-    owner = models.ForeignKey(Owner, on_delete=models.CASCADE,default=False, help_text="The phone record belongs to which owner")
-    phone_type = models.CharField(max_length=100, help_text="The type of phone, e.g., Mobile, Home, Work")
-    phone_connected = models.BooleanField(default=False, help_text="Indicator of whether the phone number is active and connected")
+    owner = models.ForeignKey(Owner, on_delete=models.CASCADE,null=True,blank=True, help_text="The phone record belongs to which owner")
+    phone_type = models.CharField(max_length=100,null=True,blank=True,help_text="The type of phone, e.g., Mobile, Home, Work")
+    phone_connected = models.BooleanField(null=True,blank=True, help_text="Indicator of whether the phone number is active and connected")
     phone_number = models.CharField(max_length=20, help_text="The phone number")
     created_at = models.DateTimeField(auto_now_add=True, blank=True, null=True)
     updated_at = models.DateTimeField(auto_now=True, blank=True, null=True)
@@ -190,7 +190,7 @@ class Phone(models.Model):
         db_table = 'owner_phones' 
 
 class Email(models.Model):
-    owner = models.ForeignKey(Owner, on_delete=models.CASCADE, default=False, help_text="The email record belongs to which owner")
+    owner = models.ForeignKey(Owner, on_delete=models.CASCADE,null=True,blank=True, help_text="The email record belongs to which owner")
     email_address = models.EmailField(help_text="The email address")
     created_at = models.DateTimeField(auto_now_add=True, blank=True, null=True)
     updated_at = models.DateTimeField(auto_now=True, blank=True, null=True)
@@ -202,7 +202,7 @@ class Email(models.Model):
         db_table = 'owner_emails'
 
 class MortgageAndDebt(models.Model):
-    property = models.ForeignKey(Property, on_delete=models.CASCADE, help_text="The property associated with this mortgage or debt", related_name='mortgages_and_debts')
+    property = models.ForeignKey(Property, on_delete=models.CASCADE,null=True,blank=True, help_text="The property associated with this mortgage or debt", related_name='mortgages_and_debts')
     mortgage_date = models.DateField(blank=True, null=True, help_text="The date the mortgage was registered")
     mortgage_amount = models.DecimalField(max_digits=12, default=0, decimal_places=2, help_text="The amount of the mortgage")
     interest_rate = models.DecimalField(max_digits=5, default=0, decimal_places=2, help_text="The interest rate of the mortgage")
@@ -218,7 +218,7 @@ class MortgageAndDebt(models.Model):
         db_table = 'property_mortgages_debts'
 
 class TaxLien(models.Model):
-    property = models.ForeignKey(Property, on_delete=models.CASCADE, help_text="The property on which the tax lien is placed", related_name='tax_liens')
+    property = models.ForeignKey(Property, on_delete=models.CASCADE,null=True,blank=True, help_text="The property on which the tax lien is placed", related_name='tax_liens')
     lien_type = models.CharField(blank=True, null=True, max_length=100, help_text="The type of tax lien")
     lien_date = models.DateField(blank=True, null=True, help_text="The date the tax lien was placed")
     lien_amount = models.DecimalField(default=0, max_digits=12, decimal_places=2, help_text="The amount of the lien")

@@ -133,7 +133,7 @@ class FullLeadSerializer(serializers.ModelSerializer):
     auction = serializers.PrimaryKeyRelatedField(queryset=Auction.objects.all(), required=False, allow_null=True)
     property = serializers.PrimaryKeyRelatedField(queryset=Property.objects.all(), required=False, allow_null=True)
     owner = serializers.PrimaryKeyRelatedField(queryset=Owner.objects.all(), required=False, allow_null=True)
-    created_by = serializers.PrimaryKeyRelatedField(queryset=User.objects.all(),required=False, allow_null=True)
+    created_by = serializers.PrimaryKeyRelatedField(queryset=User.objects.all(),required=True)
     class Meta:
         model = Lead
         fields = '__all__'
