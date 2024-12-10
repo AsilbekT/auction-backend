@@ -292,18 +292,6 @@ class LeadViewSet(viewsets.ModelViewSet):
             sales_information_serializer.is_valid(raise_exception=True)
             serializers["salesInformation"] = sales_information_serializer
 
-        lead_data = {
-            **data,
-            "owner": None,
-            "property": None,
-            "auction": None,
-            "sales_information": None,
-            "created_by": current_user_id,
-        }
-        lead_serializer = FullLeadSerializer(data=lead_data)
-        lead_serializer.is_valid(raise_exception=True)
-        serializers["lead"] = lead_serializer
-
         with transaction.atomic():
             duplicate_check_id = serializers.get("duplicate").save().id if "duplicate" in serializers else None
 
@@ -332,14 +320,17 @@ class LeadViewSet(viewsets.ModelViewSet):
             auction_id = serializers.get("auction").save().id if "auction" in serializers else None
             sales_information_id = serializers.get("salesInformation").save().id if "salesInformation" in serializers else None
 
-            lead_serializer = serializers["lead"]
-            lead_serializer.save(
-                owner=owner_id,
-                property=property_id,
-                auction=auction_id,
-                sales_information=sales_information_id,
-                created_by = current_user_id
-            )
+            lead_data = {
+            **data,
+            "owner": owner_id,
+            "property": property_id,
+            "auction": auction_id,
+            "sales_information" : sales_information_id,
+            "created_by" : current_user_id
+            }
+            lead_serializer = FullLeadSerializer(data=lead_data)
+            lead_serializer.is_valid(raise_exception=True)
+            lead_serializer.save()
 
         return Response(lead_serializer.data, status=status.HTTP_201_CREATED)
 
