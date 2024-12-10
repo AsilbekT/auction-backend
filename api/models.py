@@ -160,7 +160,7 @@ class Connection(models.Model):
         (NEIGHBOR, 'Neighbor'),
     ]
 
-    owner = models.ForeignKey(Owner, on_delete=models.CASCADE, help_text="The owner associated with this connection")
+    owner = models.ForeignKey(Owner, on_delete=models.CASCADE,null=True,blank=True,help_text="The owner associated with this connection")
     connection_type = models.CharField(max_length=10, choices = CONNECTION_TYPES, help_text="The type of connection, e.g., Associate, Relative, Neighbor")
     name = models.CharField(max_length=255, help_text="Full name of the connected individual",null=True,blank=True)
     address = models.CharField(max_length=255, help_text="Address of the connected individual",null=True,blank=True)
