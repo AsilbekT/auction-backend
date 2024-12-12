@@ -50,7 +50,7 @@ class Property(models.Model):
     baths = models.FloatField(null=True,blank=True,default=0, help_text="Number of bathrooms in the property")
     zestimate = models.DecimalField(null=True,blank=True,max_digits=10, decimal_places=2, default=0, help_text="Zillow's estimated market value for the property")
     equity = models.DecimalField(null=True,blank=True,max_digits=12, default=0, decimal_places=2, help_text="Equity amount involved in the property")
-    square_footage = models.DateTimeField(null=True,blank=True,default=0,max_digits=12, help_text="Total interior square footage of the property")
+    square_footage = models.DecimalField(null=True,blank=True,default=0,max_digits=12, decimal_places=2, help_text="Total interior square footage of the property")
     status = models.CharField(max_length=150, blank=True, null=True, help_text="what is the status of property")
     created_at = models.DateTimeField(auto_now_add=True, blank=True, null=True)
     updated_at = models.DateTimeField(auto_now=True, blank=True, null=True)
