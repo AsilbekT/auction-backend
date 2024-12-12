@@ -208,6 +208,7 @@ class MortgageAndDebt(models.Model):
     interest_rate = models.DecimalField(max_digits=5, default=0, decimal_places=2, help_text="The interest rate of the mortgage")
     loan_type = models.CharField(max_length=50, blank=True, null=True, help_text="The type of loan, e.g., Primary, Secondary")
     lender_name = models.CharField(max_length=255, blank=True, null=True, help_text="The name of the lender")
+    debt = models.DecimalField(max_digits=12, default=0, decimal_places=2, help_text="The amount of the debt")
     created_at = models.DateTimeField(auto_now_add=True, blank=True, null=True)
     updated_at = models.DateTimeField(auto_now=True, blank=True, null=True)
 
@@ -222,7 +223,7 @@ class TaxLien(models.Model):
     lien_type = models.CharField(blank=True, null=True, max_length=100, help_text="The type of tax lien")
     lien_date = models.DateField(blank=True, null=True, help_text="The date the tax lien was placed")
     lien_amount = models.DecimalField(default=0, max_digits=12, decimal_places=2, help_text="The amount of the lien")
-    certificate_of_release = models.JSONField(blank=True, null=True, help_text="JSON field containing details about the release of the lien, if applicable")
+    certificate_of_release = models.CharField(max_length=200,blank=True, null=True, help_text="details about the release of the lien, if applicable")
     created_at = models.DateTimeField(auto_now_add=True, blank=True, null=True)
     updated_at = models.DateTimeField(auto_now=True, blank=True, null=True)
 
