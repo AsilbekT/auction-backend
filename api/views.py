@@ -173,6 +173,7 @@ class DuplicateCheckViewSet(viewsets.ModelViewSet):
         if not created:
             return response_error("error", message, http_status=status.HTTP_409_CONFLICT)
         
+        serializer.save()
         return response_success("Success", serializer.data)
 
     def perform_create(self, serializer):
@@ -195,11 +196,11 @@ class DuplicateCheckViewSet(viewsets.ModelViewSet):
             
             if is_important:
                 existing_duplicate.first().delete()
-                serializer.save(reformatted_address=standardized_address)
                 return True, "Duplicate address updated with new information"
-            
-            return False, priority_message
-        return False , "the address has exists into database"
+            else :
+                return False, priority_message
+        
+        return True , "Duplicate address created"
 
 
 class LeadViewSet(viewsets.ModelViewSet):
@@ -238,11 +239,13 @@ class LeadViewSet(viewsets.ModelViewSet):
         serializers = {}
 
         if duplicate_check_data:
+            duplicate_check_data["reformatted_address"] = standardize_address(duplicate_check_data["reformatted_address"])
             duplicate_serializer = DuplicateCheckSerializer(data=duplicate_check_data)
             duplicate_serializer.is_valid(raise_exception=True)
             serializers["duplicate"] = duplicate_serializer
             duplicate_view = DuplicateCheckViewSet()
             success, message = duplicate_view.perform_create(duplicate_serializer)
+            print(success,message)
             if not success:
                 return Response({"detail": message}, status=status.HTTP_400_BAD_REQUEST)
 
