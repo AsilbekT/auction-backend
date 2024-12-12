@@ -242,6 +242,10 @@ class LeadViewSet(viewsets.ModelViewSet):
             duplicate_serializer = DuplicateCheckSerializer(data=duplicate_check_data)
             duplicate_serializer.is_valid(raise_exception=True)
             serializers["duplicate"] = duplicate_serializer
+            duplicate_view = DuplicateCheckViewSet()
+            success, message = duplicate_view.perform_create(duplicate_serializer)
+            if not success:
+                return Response({"detail": message}, status=status.HTTP_400_BAD_REQUEST)
 
         if owner_data:
             owner_serializer = WriteOwnerSerializer(data=owner_data)
