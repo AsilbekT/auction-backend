@@ -195,12 +195,11 @@ class DuplicateCheckViewSet(viewsets.ModelViewSet):
             
             if is_important:
                 existing_duplicate.first().delete()
+                serializer.save(reformatted_address=standardized_address)
                 return True, "Duplicate address updated with new information"
             
             return False, priority_message
-
-        serializer.save(reformatted_address=standardized_address)
-        return True, "Duplicate check object created successfully."
+        return False , "the address has exists into database"
 
 
 class LeadViewSet(viewsets.ModelViewSet):
