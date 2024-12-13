@@ -299,7 +299,7 @@ class LeadViewSet(viewsets.ModelViewSet):
             serializers["salesInformation"] = sales_information_serializer
 
         with transaction.atomic():
-            duplicate_check_id = serializers.get("duplicate").save().id if "duplicate" in serializers else None
+            duplicate_check = serializers.get("duplicate").save() if "duplicate" in serializers else None
 
             if "owner" in serializers:
                 owner = serializers["owner"].save()
@@ -312,7 +312,7 @@ class LeadViewSet(viewsets.ModelViewSet):
                     serializer.save(owner=owner)
 
             if "property" in serializers:
-                property = serializers["property"].save(dublicate_address=duplicate_check_id)
+                property = serializers["property"].save(dublicate_address=duplicate_check)
                 property_id = property.id
 
                 if "legalproceeding" in serializers:
