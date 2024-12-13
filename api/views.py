@@ -195,7 +195,7 @@ class DuplicateCheckViewSet(viewsets.ModelViewSet):
             )
             
             if is_important:
-                property = Property.objects.get(dublicate_address=existing_duplicate.first())
+                property = Property.objects.get(dublicate_address=duplicate_obj)
                 lead = Lead.objects.get(property = property)
                 lead.owner.delete()
                 lead.sales_information.delete()
@@ -205,7 +205,7 @@ class DuplicateCheckViewSet(viewsets.ModelViewSet):
             else :
                 return False, priority_message
         
-        return True , "Duplicate address created"
+        return True , "new address created"
 
 
 class LeadViewSet(viewsets.ModelViewSet):
@@ -236,10 +236,10 @@ class LeadViewSet(viewsets.ModelViewSet):
         phones_data = data.pop("phones", [])
         current_user_id = request.user.id
 
-        owner_id = None
-        property_id = None
-        auction_id = None
-        sales_information_id = None
+        owner = None
+        property = None
+        auction = None
+        sales_information = None 
 
         serializers = {}
 
@@ -308,7 +308,7 @@ class LeadViewSet(viewsets.ModelViewSet):
 
             if "owner" in serializers:
                 owner = serializers["owner"].save()
-                owner_id = owner.id
+
                 for serializer in serializers.get("phones", []):
                     serializer.save(owner=owner)
                 for serializer in serializers.get("emails", []):
@@ -318,7 +318,6 @@ class LeadViewSet(viewsets.ModelViewSet):
 
             if "property" in serializers:
                 property = serializers["property"].save(dublicate_address=duplicate_check)
-                property_id = property.id
 
                 if "legalproceeding" in serializers:
                     serializers["legalproceeding"].save(property=property)
