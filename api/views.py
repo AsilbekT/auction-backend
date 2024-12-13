@@ -312,8 +312,7 @@ class LeadViewSet(viewsets.ModelViewSet):
                     serializer.save(owner=owner)
 
             if "property" in serializers:
-                property_data["dublicate_address"] = duplicate_check_id
-                property = serializers["property"].save()
+                property = serializers["property"].save(dublicate_address=duplicate_check_id)
                 property_id = property.id
 
                 if "legalproceeding" in serializers:

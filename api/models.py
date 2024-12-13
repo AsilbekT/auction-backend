@@ -253,12 +253,12 @@ class SalesInformation(models.Model):
 
 
 class Lead(models.Model):
-    sales_information = models.ForeignKey(SalesInformation, on_delete=models.CASCADE, blank=True, null=True,related_name='leads')
-    auction = models.ForeignKey(Auction, on_delete=models.CASCADE, blank=True, null=True,related_name='leads')
-    property = models.ForeignKey(Property, on_delete=models.CASCADE, blank=True, null=True,related_name='leads')
-    owner = models.ForeignKey(Owner, models.CASCADE, blank=True, null=True,related_name='leads')
-    assigned_to = models.ForeignKey(User, on_delete=models.CASCADE, blank=True, null=True , related_name='assigned_to_users')
-    created_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name='created_by_users')
+    sales_information = models.ForeignKey(SalesInformation, on_delete=models.CASCADE, blank=True, null=True,related_name='lead')
+    auction = models.ForeignKey(Auction, on_delete=models.CASCADE, blank=True, null=True,related_name='lead')
+    property = models.ForeignKey(Property, on_delete=models.CASCADE, blank=True, null=True,related_name='lead')
+    owner = models.ForeignKey(Owner, models.CASCADE, blank=True, null=True,related_name='lead')
+    assigned_to = models.ForeignKey(User, on_delete=models.CASCADE, blank=True, null=True , related_name='assigned_leads')
+    created_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name='created_leads')
     stage = models.CharField(max_length=50, default="NEW",blank=True, null=True, help_text="The stage of the sales process, e.g., Initial or Follow-Up")
     deal_strength = models.CharField(max_length=100, blank=True, null=True, help_text="An assessment of the deal strength or likelihood to close successfully")
     created_at = models.DateTimeField(auto_now_add=True, blank=True, null=True)
