@@ -34,7 +34,7 @@ class DuplicateCheck(models.Model):
         ]
 
 class Property(models.Model):
-    dublicate_address = models.ForeignKey(DuplicateCheck, on_delete=models.CASCADE, blank=True, null=True)
+    dublicate_address = models.ForeignKey(DuplicateCheck, on_delete=models.CASCADE, blank=True, null=True,related_name='properties')
     address = models.CharField(max_length=255, help_text="The full street address of the property")
     city = models.CharField(max_length=100, blank=True, null=True, help_text="The city where the property is located")
     state = models.CharField(max_length=100, blank=True, null=True, help_text="The state where the property is located")
@@ -161,7 +161,7 @@ class Connection(models.Model):
         (NEIGHBOR, 'Neighbor'),
     ]
 
-    owner = models.ForeignKey(Owner, on_delete=models.CASCADE,null=True,blank=True,help_text="The owner associated with this connection")
+    owner = models.ForeignKey(Owner, on_delete=models.CASCADE,null=True,blank=True,help_text="The owner associated with this connection",related_name='owner_connections')
     connection_type = models.CharField(max_length=10, choices = CONNECTION_TYPES, help_text="The type of connection, e.g., Associate, Relative, Neighbor")
     name = models.CharField(max_length=255, help_text="Full name of the connected individual",null=True,blank=True)
     address = models.CharField(max_length=255, help_text="Address of the connected individual",null=True,blank=True)
@@ -177,7 +177,7 @@ class Connection(models.Model):
 
 
 class Phone(models.Model):
-    owner = models.ForeignKey(Owner, on_delete=models.CASCADE,null=True,blank=True, help_text="The phone record belongs to which owner")
+    owner = models.ForeignKey(Owner, on_delete=models.CASCADE,null=True,blank=True, help_text="The phone record belongs to which owner",related_name='owner_phones')
     phone_type = models.CharField(max_length=100,null=True,blank=True,help_text="The type of phone, e.g., Mobile, Home, Work")
     phone_connected = models.BooleanField(null=True,blank=True, help_text="Indicator of whether the phone number is active and connected")
     phone_number = models.CharField(max_length=20, help_text="The phone number")
@@ -191,7 +191,7 @@ class Phone(models.Model):
         db_table = 'owner_phones' 
 
 class Email(models.Model):
-    owner = models.ForeignKey(Owner, on_delete=models.CASCADE,null=True,blank=True, help_text="The email record belongs to which owner")
+    owner = models.ForeignKey(Owner, on_delete=models.CASCADE,null=True,blank=True, help_text="The email record belongs to which owner",related_name='owner_emails')
     email_address = models.EmailField(help_text="The email address")
     created_at = models.DateTimeField(auto_now_add=True, blank=True, null=True)
     updated_at = models.DateTimeField(auto_now=True, blank=True, null=True)
@@ -207,7 +207,7 @@ class MortgageAndDebt(models.Model):
     mortgage_date = models.DateField(blank=True, null=True, help_text="The date the mortgage was registered")
     mortgage_amount = models.DecimalField(max_digits=12, default=0,null=True,blank=True, decimal_places=2, help_text="The amount of the mortgage")
     interest_rate = models.FloatField(default=0,null=True,blank=True, help_text="The interest rate of the loan")
-    loan_type = models.CharField(max_length= 150, blank=True, null=True, help_text="The type of loan, e.g., Primary, Secondary")
+    loan_type = models.CharField(max_length= 255, blank=True, null=True, help_text="The type of loan, e.g., Primary, Secondary")
     lender_name = models.CharField(max_length=255, blank=True, null=True, help_text="The name of the lender")
     debt = models.DecimalField(max_digits=12, default=0,null=True,blank=True ,decimal_places=2, help_text="The amount of the debt")
     created_at = models.DateTimeField(auto_now_add=True, blank=True, null=True)
@@ -253,10 +253,10 @@ class SalesInformation(models.Model):
 
 
 class Lead(models.Model):
-    sales_information = models.ForeignKey(SalesInformation, on_delete=models.CASCADE, blank=True, null=True)
-    auction = models.ForeignKey(Auction, on_delete=models.CASCADE, blank=True, null=True)
-    property = models.ForeignKey(Property, on_delete=models.CASCADE, blank=True, null=True)
-    owner = models.ForeignKey(Owner, models.CASCADE, blank=True, null=True)
+    sales_information = models.ForeignKey(SalesInformation, on_delete=models.CASCADE, blank=True, null=True,related_name='leads')
+    auction = models.ForeignKey(Auction, on_delete=models.CASCADE, blank=True, null=True,related_name='leads')
+    property = models.ForeignKey(Property, on_delete=models.CASCADE, blank=True, null=True,related_name='leads')
+    owner = models.ForeignKey(Owner, models.CASCADE, blank=True, null=True,related_name='leads')
     assigned_to = models.ForeignKey(User, on_delete=models.CASCADE, blank=True, null=True , related_name='assigned_to_users')
     created_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name='created_by_users')
     stage = models.CharField(max_length=50, default="NEW",blank=True, null=True, help_text="The stage of the sales process, e.g., Initial or Follow-Up")
