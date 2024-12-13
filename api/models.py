@@ -50,7 +50,7 @@ class Property(models.Model):
     baths = models.FloatField(null=True,blank=True,default=0, help_text="Number of bathrooms in the property")
     zestimate = models.DecimalField(null=True,blank=True,max_digits=10, decimal_places=2, default=0, help_text="Zillow's estimated market value for the property")
     equity = models.DecimalField(null=True,blank=True,max_digits=12, default=0, decimal_places=2, help_text="Equity amount involved in the property")
-    square_footage = models.DecimalField(null=True,blank=True,default=0,max_digits=12, decimal_places=2, help_text="Total interior square footage of the property")
+    square_footage = models.FloatField(null=True,blank=True,default=0, help_text="Total interior square footage of the property")
     status = models.CharField(max_length=150, blank=True, null=True, help_text="what is the status of property")
     created_at = models.DateTimeField(auto_now_add=True, blank=True, null=True)
     updated_at = models.DateTimeField(auto_now=True, blank=True, null=True)
@@ -206,8 +206,8 @@ class MortgageAndDebt(models.Model):
     property = models.ForeignKey(Property, on_delete=models.CASCADE,null=True,blank=True, help_text="The property associated with this mortgage or debt", related_name='mortgages_and_debts')
     mortgage_date = models.DateField(blank=True, null=True, help_text="The date the mortgage was registered")
     mortgage_amount = models.DecimalField(max_digits=12, default=0,null=True,blank=True, decimal_places=2, help_text="The amount of the mortgage")
-    interest_rate = models.DecimalField(max_digits=10, default=0,null=True,blank=True, decimal_places=10, help_text="The interest rate of the mortgage")
-    loan_type = models.CharField(max_length=100, blank=True, null=True, help_text="The type of loan, e.g., Primary, Secondary")
+    interest_rate = models.FloatField(default=0,null=True,blank=True, help_text="The interest rate of the loan")
+    loan_type = models.CharField(max_length= 150, blank=True, null=True, help_text="The type of loan, e.g., Primary, Secondary")
     lender_name = models.CharField(max_length=255, blank=True, null=True, help_text="The name of the lender")
     debt = models.DecimalField(max_digits=12, default=0,null=True,blank=True ,decimal_places=2, help_text="The amount of the debt")
     created_at = models.DateTimeField(auto_now_add=True, blank=True, null=True)
@@ -221,7 +221,7 @@ class MortgageAndDebt(models.Model):
 
 class TaxLien(models.Model):
     property = models.ForeignKey(Property, on_delete=models.CASCADE,null=True,blank=True, help_text="The property on which the tax lien is placed", related_name='tax_liens')
-    lien_type = models.CharField(blank=True, null=True, max_length=100, help_text="The type of tax lien")
+    lien_type = models.CharField(blank=True, null=True, max_length=150, help_text="The type of tax lien")
     lien_date = models.DateField(blank=True, null=True, help_text="The date the tax lien was placed")
     lien_amount = models.DecimalField(default=0, max_digits=12,null=True,blank=True, decimal_places=2, help_text="The amount of the lien")
     certificate_of_release = models.CharField(max_length=200,blank=True, null=True, help_text="details about the release of the lien, if applicable")
@@ -240,7 +240,7 @@ class TaxLien(models.Model):
 class SalesInformation(models.Model):
     sale_date = models.DateField(blank=True, null=True, help_text="The date on which the sale is completed or expected to be completed")
     sold_amount = models.DecimalField(max_digits=12, default=0,null=True,blank=True, decimal_places=2, help_text="The amount for which the property was sold")
-    sale_status = models.CharField(max_length=50, blank=True, null=True, help_text="The status of the sale, e.g., Pending or Closed")
+    sale_status = models.CharField(max_length=100, blank=True, null=True, help_text="The status of the sale, e.g., Pending or Closed")
     created_at = models.DateTimeField(auto_now_add=True, blank=True, null=True)
     updated_at = models.DateTimeField(auto_now=True, blank=True, null=True)
 
