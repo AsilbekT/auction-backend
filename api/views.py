@@ -195,7 +195,12 @@ class DuplicateCheckViewSet(viewsets.ModelViewSet):
             )
             
             if is_important:
-                existing_duplicate.first().delete()
+                property = Property.objects.get(dublicate_address=existing_duplicate.first())
+                lead = Lead.objects.get(property = property)
+                lead.owner.delete()
+                lead.sales_information.delete()
+                lead.auction.delete()
+                existing_duplicate.delete()
                 return True, "Duplicate address updated with new information"
             else :
                 return False, priority_message
@@ -322,20 +327,19 @@ class LeadViewSet(viewsets.ModelViewSet):
                 if "taxlien" in serializers:
                     serializers["taxlien"].save(property=property)
 
-            auction_id = serializers.get("auction").save().id if "auction" in serializers else None
-            sales_information_id = serializers.get("salesInformation").save().id if "salesInformation" in serializers else None
+            auction = serializers.get("auction").save() if "auction" in serializers else None
+            sales_information = serializers.get("salesInformation").save() if "salesInformation" in serializers else None
 
             lead_data = {
             **data,
-            "owner": owner_id,
-            "property": property_id,
-            "auction": auction_id,
-            "sales_information" : sales_information_id,
             "created_by" : current_user_id
             }
             lead_serializer = FullLeadSerializer(data=lead_data)
             lead_serializer.is_valid(raise_exception=True)
-            lead_serializer.save()
+            lead_serializer.save(owner = owner ,
+                                 property = property ,
+                                 sales_information = sales_information ,
+                                 auction = auction)
 
         return Response(lead_serializer.data, status=status.HTTP_201_CREATED)
 
