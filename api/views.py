@@ -206,7 +206,34 @@ class DuplicateCheckViewSet(viewsets.ModelViewSet):
                 return False, priority_message
         
         return True , "new address created"
+    
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        query_params = self.request.query_params
+        filters = {}
 
+        for key, value in query_params.items():
+            if "__" in key: 
+                filters[key] = value
+
+        if filters:
+            try:
+                queryset = queryset.filter(**filters)
+            except Exception as e:
+                raise ValidationError(f"Error applying filters: {str(e)}")
+            
+        sort = self.request.query_params.get('sort', None)
+        if sort:
+            sort_fields = sort.split(',')
+            queryset = queryset.order_by(*sort_fields)
+
+        return queryset
+
+#    def destroy(self, request, *args, **kwargs):
+#        instance = self.get_object()
+#        instance.child_set.all().delete() 
+#        instance.delete() 
+#        return Response(status=status.HTTP_204_NO_CONTENT)
 
 class LeadViewSet(viewsets.ModelViewSet):
     queryset = Lead.objects.all().order_by("-id")
