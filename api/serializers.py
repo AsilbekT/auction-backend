@@ -230,10 +230,10 @@ class ListOwnerSerializer(serializers.ModelSerializer):
 
 #lead serializers
 class ReadLeadSerializer(serializers.ModelSerializer):
-    sales_information = CreateOrReadSalesInformationSerializer(many=True, read_only=True)
-    auction = CreateOrReadAuctionSerializer(many=True, read_only=True)
+    sales_information = CreateOrReadSalesInformationSerializer(many=True, read_only=True,source='sales_information_set')
+    auction = CreateOrReadAuctionSerializer(many=True, read_only=True,source='auction_set')
     property = ReadPropertySerializer(read_only=True)
-    owner = ReadOwnerSerializer(many=True, read_only=True)
+    owner = ReadOwnerSerializer(many=True, read_only=True,source='owner_set')
     created_by = ListUserSerializer(read_only=True)
     class Meta:
         model = Lead
