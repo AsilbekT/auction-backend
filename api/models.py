@@ -1,6 +1,5 @@
 from django.db import models
 from django.contrib.auth.models import User
-from django.core.exceptions import ValidationError
 
 
 class DuplicateCheck(models.Model):
@@ -114,7 +113,7 @@ class Owner(models.Model):
 
     def save(self, *args, **kwargs):
         if Owner.objects.filter(lead = self.lead,first_name=self.first_name, last_name=self.last_name, dob=self.dob, mailing_zip=self.mailing_zip).exists():
-            raise ValidationError("Duplicate owner entry with the same details.")
+            return None
         super().save(*args, **kwargs)
 
     
@@ -289,10 +288,11 @@ class TaxLien(models.Model):
         db_table = 'property_tax_liens'
 
     def save(self, *args, **kwargs):
-        if TaxLien.objects.filter(property = self.property,lien_type=self.lien_type,
+        if TaxLien.objects.filter(property = self.property,
+                                  lien_type=self.lien_type,
                                   lien_date=self.lien_date, 
                                   lien_amount=self.lien_amount).exists():
-            raise ValidationError("Duplicate taxlien entry with the same details.")
+            return None
         super().save(*args, **kwargs)
 
 
