@@ -54,6 +54,19 @@ class Property(models.Model):
     created_at = models.DateTimeField(auto_now_add=True, blank=True, null=True)
     updated_at = models.DateTimeField(auto_now=True, blank=True, null=True)
 
+    def save(self, *args, **kwargs):
+        if Property.objects.filter(zestimate = self.zestimate,
+                                   status=self.status, 
+                                   property_type=self.property_type, 
+                                   zip_code=self.zip_code, 
+                                   state=self.state,
+                                   year_built = self.year_built,
+                                   beds = self.beds,
+                                   baths = self.baths,
+                                   square_footage = self.square_footage
+                                   ).exists():
+            return None
+        super().save(*args, **kwargs)
 
     class Meta:
         db_table = 'properties'
@@ -313,6 +326,6 @@ class SalesInformation(models.Model):
         db_table = 'sales_information' 
 
     def save(self, *args, **kwargs):
-        if SalesInformation.objects.filter(property = self.lead,sale_date=self.sale_date).exists():
+        if SalesInformation.objects.filter(lead = self.lead,sale_date=self.sale_date).exists():
             None
         super().save(*args, **kwargs)
