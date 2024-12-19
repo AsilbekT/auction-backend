@@ -199,6 +199,7 @@ class UpdateOrDeleteLeadSerializer(serializers.ModelSerializer):
         fields = ['id']     
 
 class ListLeadSerializer(serializers.ModelSerializer):
+    property = ReadPropertySerializer(read_only=True)
     class Meta:
         model = Lead
         fields =  ['id', 'property','assigned_to', 'stage', 'deal_strength','created_by','created_at','updated_at']
