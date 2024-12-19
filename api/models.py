@@ -1,6 +1,5 @@
 from django.db import models
 from django.contrib.auth.models import User
-from django.core.exceptions import ValidationError
 
 
 class DuplicateCheck(models.Model):
@@ -55,6 +54,19 @@ class Property(models.Model):
     created_at = models.DateTimeField(auto_now_add=True, blank=True, null=True)
     updated_at = models.DateTimeField(auto_now=True, blank=True, null=True)
 
+    def save(self, *args, **kwargs):
+        if Property.objects.filter(zestimate = self.zestimate,
+                                   status=self.status, 
+                                   property_type=self.property_type, 
+                                   zip_code=self.zip_code, 
+                                   state=self.state,
+                                   year_built = self.year_built,
+                                   beds = self.beds,
+                                   baths = self.baths,
+                                   square_footage = self.square_footage
+                                   ).exists():
+            return None
+        super().save(*args, **kwargs)
 
     class Meta:
         db_table = 'properties'
@@ -114,7 +126,7 @@ class Owner(models.Model):
 
     def save(self, *args, **kwargs):
         if Owner.objects.filter(lead = self.lead,first_name=self.first_name, last_name=self.last_name, dob=self.dob, mailing_zip=self.mailing_zip).exists():
-            raise ValidationError("Duplicate owner entry with the same details.")
+            return None
         super().save(*args, **kwargs)
 
     
@@ -289,10 +301,11 @@ class TaxLien(models.Model):
         db_table = 'property_tax_liens'
 
     def save(self, *args, **kwargs):
-        if TaxLien.objects.filter(property = self.property,lien_type=self.lien_type,
+        if TaxLien.objects.filter(property = self.property,
+                                  lien_type=self.lien_type,
                                   lien_date=self.lien_date, 
                                   lien_amount=self.lien_amount).exists():
-            raise ValidationError("Duplicate taxlien entry with the same details.")
+            return None
         super().save(*args, **kwargs)
 
 
@@ -313,6 +326,6 @@ class SalesInformation(models.Model):
         db_table = 'sales_information' 
 
     def save(self, *args, **kwargs):
-        if SalesInformation.objects.filter(property = self.lead,sale_date=self.sale_date).exists():
+        if SalesInformation.objects.filter(lead = self.lead,sale_date=self.sale_date).exists():
             None
         super().save(*args, **kwargs)
