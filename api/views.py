@@ -1,49 +1,63 @@
 from rest_framework import viewsets, status
-from rest_framework.decorators import action
 from django.db import transaction
+from django.utils.timezone import now
+from rest_framework.exceptions import ValidationError
 from rest_framework.permissions import IsAuthenticated
-from .models import  Email, Lead, Phone, Property, Owner, LegalProceeding, Auction, SalesInformation, Connection, MortgageAndDebt, TaxLien, DuplicateCheck,User
+from .models import  Email, Lead, Phone, Property, Owner, LegalProceeding, Auction, SalesInformation, Connection, MortgageAndDebt, TaxLien, DuplicateCheck, User
 from .serializers import (
-    UserSerializer,
-    EmailSerializer,
-    FullLeadSerializer,
-    GetLeadSerializer,
-    PhoneSerializer,
-    OwnerSerializer,
-    LegalProceedingSerializer,
-    ReadAuctionSerializer,
-    ReadPropertySerializer,
-    SalesInformationSerializer,
-    ConnectionSerializer,
-    MortgageAndDebtSerializer,
-    SmallLeadSerializer,
-    SmallOwnerSerializer,
-    SmallPhoneSerializer,
-    TaxLienSerializer,
-    DuplicateCheckSerializer,
-    WriteAuctionSerializer,
-    WriteOwnerSerializer,
-    WritePropertySerializer
-
+    CreateOrReadUserSerializer,UpdateOrDeleteUserSerializer,ListUserSerializer,
+    ReadPropertySerializer,CreatePropertySerializer,UpdateOrDeletePropertySerializer,ListPropertySerializer,
+    CreateOrReadTaxLienSerializer,UpdateOrDeleteTaxLienSerializer,ListTaxLienSerializer,
+    CreateOrReadAuctionSerializer,UpdateOrDeleteAuctionSerializer,ListAuctionSerializer,
+    CreateOrReadDuplicateCheckSerializer,UpdateOrDeleteDuplicateCheckSerializer,ListDuplicateCheckSerializer,
+    ReadOwnerSerializer,CreateOwnerSerializer,UpdateOrDeleteOwnerSerializer,ListOwnerSerializer,
+    CreateOrReadEmailSerializer,UpdateOrDeleteEmailSerializer,ListEmailSerializer,
+    CreateOrReadPhoneSerializer,UpdateOrDeletePhoneSerializer,ListPhoneSerializer,
+    CreateOrReadMortgageAndDebtSerializer,UpdateOrDeleteMortgageAndDebtSerializer,ListMortgageAndDebtSerializer,
+    CreateOrReadLegalProceedingSerializer,UpdateOrDeleteLegalProceedingSerializer,ListLegalProceedingSerializer,
+    CreateOrReadConnectionSerializer,UpdateOrDeleteConnectionSerializer,ListConnectionSerializer,
+    CreateOrReadSalesInformationSerializer,UpdateOrDeleteSalesInformationSerializer,ListSalesInformationSerializer,
+    CreateLeadSerializer,ReadLeadSerializer,UpdateOrDeleteLeadSerializer,ListLeadSerializer,
 )
-from rest_framework import serializers
 from rest_framework.response import Response
-from .utils import check_priority, response_success, response_error, CustomPagination, standardize_address
+from .utils import response_success, response_error, CustomPagination, standardize_address
 
+class QueryParamFilterMixin:
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        query_params = self.request.query_params
+        filters = {}
 
+        for key, value in query_params.items():
+            if "__" in key: 
+                filters[key] = value
 
-class PropertyViewSet(viewsets.ModelViewSet):
+        if filters:
+            try:
+                queryset = queryset.filter(**filters)
+            except Exception as e:
+                raise ValidationError(f"Error applying filters: {str(e)}")
+
+        sort = query_params.get('sort', None)
+        if sort:
+            sort_fields = sort.split(',')
+            queryset = queryset.order_by(*sort_fields)
+
+        return queryset
+
+class PropertyViewSet(QueryParamFilterMixin,viewsets.ModelViewSet):
     queryset = Property.objects.all().order_by("-id")
     permission_classes = [IsAuthenticated]
     pagination_class = CustomPagination
 
     def get_serializer_class(self):
-        if self.action in ['list', 'retrieve']:
+        if self.action in ['create']:
+            return CreatePropertySerializer
+        elif self.action in ['retrieve']:
             return ReadPropertySerializer
-        elif self.action in ['create', 'update', 'partial_update']:
-            return WritePropertySerializer
-        return ReadPropertySerializer
-
+        elif self.action in ['update','delete'] :
+            return UpdateOrDeletePropertySerializer
+        return ListPropertySerializer
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
@@ -67,42 +81,56 @@ class PropertyViewSet(viewsets.ModelViewSet):
 
 
 
-class OwnerViewSet(viewsets.ModelViewSet):
+class OwnerViewSet(QueryParamFilterMixin,viewsets.ModelViewSet):
     queryset = Owner.objects.all().order_by("-id")
     permission_classes = [IsAuthenticated]
     pagination_class = CustomPagination
 
     def get_serializer_class(self):
-        if self.action == 'list' or self.action == 'create':
-            return SmallOwnerSerializer
-        elif self.action == 'create':
-            return WriteOwnerSerializer
-        return OwnerSerializer
+        if self.action in ['create']:
+            return CreateOwnerSerializer
+        elif self.action in ['retrieve']:
+            return ReadOwnerSerializer
+        elif self.action in ['update','delete'] :
+            return UpdateOrDeleteOwnerSerializer
+        return ListOwnerSerializer
 
 
-class LegalProceedingViewSet(viewsets.ModelViewSet):
+class LegalProceedingViewSet(QueryParamFilterMixin,viewsets.ModelViewSet):
     queryset = LegalProceeding.objects.all().order_by("-id")
-    serializer_class = LegalProceedingSerializer
     permission_classes = [IsAuthenticated]
     pagination_class = CustomPagination
 
-class UserViewSet(viewsets.ModelViewSet):
+    def get_serializer_class(self):
+        if self.action in ['create','retrieve']:
+            return CreateOrReadLegalProceedingSerializer
+        elif self.action in ['update','delete'] :
+            return UpdateOrDeleteLegalProceedingSerializer
+        return ListLegalProceedingSerializer
+
+class UserViewSet(QueryParamFilterMixin,viewsets.ModelViewSet):
     queryset = User.objects.all().order_by("-id")
-    serializer_class = UserSerializer
     permission_classes = [IsAuthenticated]
     pagination_class = CustomPagination
 
-class AuctionViewSet(viewsets.ModelViewSet):
+    def get_serializer_class(self):
+        if self.action in ['create','retrieve']:
+            return CreateOrReadUserSerializer
+        elif self.action in ['update','delete'] :
+            return UpdateOrDeleteUserSerializer
+        return ListUserSerializer
+
+class AuctionViewSet(QueryParamFilterMixin,viewsets.ModelViewSet):
     queryset = Auction.objects.all().order_by("-id")
     permission_classes = [IsAuthenticated]
     pagination_class = CustomPagination
 
     def get_serializer_class(self):
-        if self.action in ['list', 'retrieve']:
-            return ReadAuctionSerializer
-        elif self.action in ['create', 'update', 'partial_update']:
-            return WriteAuctionSerializer
-        return ReadAuctionSerializer
+        if self.action in ['create','retrieve']:
+            return CreateOrReadAuctionSerializer
+        elif self.action in ['update','delete'] :
+            return UpdateOrDeleteAuctionSerializer
+        return ListAuctionSerializer
 
     def list(self, request, *args, **kwargs):
 
@@ -131,39 +159,68 @@ class AuctionViewSet(viewsets.ModelViewSet):
         return Response(serializer.data)
 
 
-class SalesInformationViewSet(viewsets.ModelViewSet):
+class SalesInformationViewSet(QueryParamFilterMixin,viewsets.ModelViewSet):
     queryset = SalesInformation.objects.all().order_by("-id")
-    serializer_class = SalesInformationSerializer
     permission_classes = [IsAuthenticated]
     pagination_class = CustomPagination
 
+    def get_serializer_class(self):
+        if self.action in ['create','retrieve']:
+            return CreateOrReadSalesInformationSerializer
+        elif self.action in ['update','delete'] :
+            return UpdateOrDeleteSalesInformationSerializer
+        return ListSalesInformationSerializer
 
-class ConnectionViewSet(viewsets.ModelViewSet):
+
+class ConnectionViewSet(QueryParamFilterMixin,viewsets.ModelViewSet):
     queryset = Connection.objects.all().order_by("-id")
-    serializer_class = ConnectionSerializer
     permission_classes = [IsAuthenticated]
     pagination_class = CustomPagination
 
+    def get_serializer_class(self):
+        if self.action in ['create','retrieve']:
+            return CreateOrReadConnectionSerializer
+        elif self.action in ['update','delete'] :
+            return UpdateOrDeleteConnectionSerializer
+        return ListConnectionSerializer
 
-class MortgageAndDebtViewSet(viewsets.ModelViewSet):
+class MortgageAndDebtViewSet(QueryParamFilterMixin,viewsets.ModelViewSet):
     queryset = MortgageAndDebt.objects.all().order_by("-id")
-    serializer_class = MortgageAndDebtSerializer
     permission_classes = [IsAuthenticated]
     pagination_class = CustomPagination
 
+    def get_serializer_class(self):
+        if self.action in ['create','retrieve']:
+            return CreateOrReadMortgageAndDebtSerializer
+        elif self.action in ['update','delete'] :
+            return UpdateOrDeleteMortgageAndDebtSerializer
+        return ListMortgageAndDebtSerializer
 
-class TaxLienViewSet(viewsets.ModelViewSet):
+
+class TaxLienViewSet(QueryParamFilterMixin,viewsets.ModelViewSet):
     queryset = TaxLien.objects.all().order_by("-id")
-    serializer_class = TaxLienSerializer
     permission_classes = [IsAuthenticated]
     pagination_class = CustomPagination
 
+    def get_serializer_class(self):
+        if self.action in ['create','retrieve']:
+            return CreateOrReadTaxLienSerializer
+        elif self.action in ['update','delete'] :
+            return UpdateOrDeleteTaxLienSerializer
+        return ListTaxLienSerializer
 
-class DuplicateCheckViewSet(viewsets.ModelViewSet):
+
+class DuplicateCheckViewSet(QueryParamFilterMixin,viewsets.ModelViewSet):
     queryset = DuplicateCheck.objects.all().order_by("-id")
-    serializer_class = DuplicateCheckSerializer
     permission_classes = [IsAuthenticated]
     pagination_class = CustomPagination
+
+    def get_serializer_class(self):
+        if self.action in ['create','retrieve']:
+            return CreateOrReadDuplicateCheckSerializer
+        elif self.action in ['update','delete'] :
+            return UpdateOrDeleteDuplicateCheckSerializer
+        return ListDuplicateCheckSerializer
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
@@ -180,8 +237,6 @@ class DuplicateCheckViewSet(viewsets.ModelViewSet):
         standardized_address = standardize_address(serializer.validated_data.get("reformatted_address"))
         source_name = serializer.validated_data.get("source_name")
         is_auction = serializer.validated_data.get("is_auction")
-        if any([standardized_address, source_name, is_auction]) == None:
-            return False, "All fields must be provided"
         
         if standardized_address is None:
             return False, "Invalid address format"
@@ -189,67 +244,30 @@ class DuplicateCheckViewSet(viewsets.ModelViewSet):
         existing_duplicate = DuplicateCheck.objects.filter(reformatted_address=standardized_address,is_auction=is_auction)
         if existing_duplicate.exists():
             duplicate_obj = existing_duplicate.last()
-            is_important, priority_message = check_priority(
-                source_name,
-                duplicate_obj
-            )
-            
-            if is_important:
-                property = Property.objects.get(dublicate_address=duplicate_obj)
-                lead = Lead.objects.get(property = property)
-                lead.owner.delete()
-                lead.sales_information.delete()
-                lead.auction.delete()
-                existing_duplicate.delete()
-                return True, "Duplicate address updated with new information"
-            else :
-                return False, priority_message
-        
+            if duplicate_obj.source_name == source_name :
+                return False , "it should be update"
         return True , "new address created"
-    
-    def get_queryset(self):
-        queryset = super().get_queryset()
-        query_params = self.request.query_params
-        filters = {}
 
-        for key, value in query_params.items():
-            if "__" in key: 
-                filters[key] = value
 
-        if filters:
-            try:
-                queryset = queryset.filter(**filters)
-            except Exception as e:
-                raise ValidationError(f"Error applying filters: {str(e)}")
-            
-        sort = self.request.query_params.get('sort', None)
-        if sort:
-            sort_fields = sort.split(',')
-            queryset = queryset.order_by(*sort_fields)
-
-        return queryset
-
-#    def destroy(self, request, *args, **kwargs):
-#        instance = self.get_object()
-#        instance.child_set.all().delete() 
-#        instance.delete() 
-#        return Response(status=status.HTTP_204_NO_CONTENT)
-
-class LeadViewSet(viewsets.ModelViewSet):
+class LeadViewSet(QueryParamFilterMixin,viewsets.ModelViewSet):
     queryset = Lead.objects.all().order_by("-id")
     permission_classes = [IsAuthenticated]
     pagination_class = CustomPagination
 
     def get_serializer_class(self):
-        if self.action in ['list']:
-            return SmallLeadSerializer
+        if self.action in ['create']:
+            return CreateLeadSerializer
         elif self.action in ['retrieve']:
-            return GetLeadSerializer
-        return FullLeadSerializer
+            return ReadLeadSerializer
+        elif self.action in ['update','delete']:
+            return UpdateOrDeleteLeadSerializer
+        return ListLeadSerializer
     
+
     def create(self, request, *args, **kwargs):
         data = request.data
 
+        # Pop data from request
         duplicate_check_data = data.pop("duplicate_check", None)
         owner_data = data.pop("owner", None)
         property_data = data.pop("property", None)
@@ -263,155 +281,128 @@ class LeadViewSet(viewsets.ModelViewSet):
         phones_data = data.pop("phones", [])
         current_user_id = request.user.id
 
-        owner = None
-        property = None
-        auction = None
-        sales_information = None 
+        lead_is_new = True
+        
+        with transaction.atomic() :
 
-        serializers = {}
+            if duplicate_check_data:
+                duplicate_check_data["reformatted_address"] = standardize_address(duplicate_check_data["reformatted_address"])
+                duplicate_serializer = CreateOrReadDuplicateCheckSerializer(data=duplicate_check_data)
+                duplicate_serializer.is_valid(raise_exception=True)
+                duplicate_view = DuplicateCheckViewSet()
+                success, _ = duplicate_view.perform_create(duplicate_serializer)
+                if not success:
+                    duplicate_check = DuplicateCheck.objects.filter(
+                        reformatted_address=duplicate_check_data['reformatted_address'],
+                        source_name=duplicate_check_data['source_name'],
+                        is_auction=duplicate_check_data['is_auction']
+                    ).last()
+                    lead_is_new = False
+                else :
+                    duplicate_check = duplicate_serializer.save()
+            else :
+                raise ValidationError("Duplicate check data should not be empty")
 
-        if duplicate_check_data:
-            duplicate_check_data["reformatted_address"] = standardize_address(duplicate_check_data["reformatted_address"])
-            duplicate_serializer = DuplicateCheckSerializer(data=duplicate_check_data)
-            duplicate_serializer.is_valid(raise_exception=True)
-            serializers["duplicate"] = duplicate_serializer
-            duplicate_view = DuplicateCheckViewSet()
-            success, message = duplicate_view.perform_create(duplicate_serializer)
-            print(success,message)
-            if not success:
-                return Response({"detail": message}, status=status.HTTP_400_BAD_REQUEST)
+            if property_data:
+                if lead_is_new :
+                    property_serializer = CreatePropertySerializer(data=property_data)
+                    property_serializer.is_valid(raise_exception=True)
+                    property = property_serializer.save(duplicate_check = duplicate_check)
+                else :
+                    property = Property.objects.filter(duplicate_check=duplicate_check).last()
 
-        if owner_data:
-            owner_serializer = WriteOwnerSerializer(data=owner_data)
-            owner_serializer.is_valid(raise_exception=True)
-            serializers["owner"] = owner_serializer
-            for phone in phones_data:
-                phone_serializer = PhoneSerializer(data=phone)
-                phone_serializer.is_valid(raise_exception=True)
-                serializers.setdefault("phones", []).append(phone_serializer)
+                if legalproceeding_data:
+                    legalproceeding_serializer = CreateOrReadLegalProceedingSerializer(data=legalproceeding_data)
+                    legalproceeding_serializer.is_valid(raise_exception=True)
+                    try :
+                        legalproceeding_serializer.save(property=property)
+                    except ValidationError as e:
+                        print(f"Lead validation error: {e}")
 
-            for email in emails_data:
-                email_serializer = EmailSerializer(data=email)
-                email_serializer.is_valid(raise_exception=True)
-                serializers.setdefault("emails", []).append(email_serializer)
+                if mortgageanddebt_data:
+                    mortgageanddebt_serializer = CreateOrReadMortgageAndDebtSerializer(data=mortgageanddebt_data)
+                    mortgageanddebt_serializer.is_valid(raise_exception=True)
+                    mortgageanddebt_serializer.save(property=property)
 
-            for connection in connections_data:
-                connection_serializer = ConnectionSerializer(data=connection)
-                connection_serializer.is_valid(raise_exception=True)
-                serializers.setdefault("connections", []).append(connection_serializer)
+                if taxlien_data:
+                    taxlien_serializer = CreateOrReadTaxLienSerializer(data=taxlien_data)
+                    taxlien_serializer.is_valid(raise_exception=True)
+                    taxlien_serializer.save(property=property)
 
-        if property_data:
-            property_serializer = WritePropertySerializer(data=property_data)
-            property_serializer.is_valid(raise_exception=True)
-            serializers["property"] = property_serializer
+            if lead_is_new:
+                lead_data = {
+                    **data,
+                    "created_by": current_user_id,
+                }
+                lead_serializer = CreateLeadSerializer(data=lead_data)
+                lead_serializer.is_valid(raise_exception=True)
+                lead = lead_serializer.save(property=property)
+            else :
+                lead = Lead.objects.filter(property=property).last()
 
-            if legalproceeding_data:
-                legalproceeding_serializer = LegalProceedingSerializer(data=legalproceeding_data)
-                legalproceeding_serializer.is_valid(raise_exception=True)
-                serializers["legalproceeding"] = legalproceeding_serializer
+            if owner_data:
+                owner_serializer = CreateOwnerSerializer(data=owner_data)
+                owner_serializer.is_valid(raise_exception=True)
+                owner = owner_serializer.save(lead=lead)
 
-            if mortgageanddebt_data:
-                mortgageanddebt_serializer = MortgageAndDebtSerializer(data=mortgageanddebt_data)
-                mortgageanddebt_serializer.is_valid(raise_exception=True)
-                serializers["mortgageanddebt"] = mortgageanddebt_serializer
+                for phone in phones_data:
+                    phone_serializer = CreateOrReadPhoneSerializer(data=phone)
+                    phone_serializer.is_valid(raise_exception=True)
+                    phone_serializer.save(owner=owner)
 
-            if taxlien_data:
-                taxlien_serializer = TaxLienSerializer(data=taxlien_data)
-                taxlien_serializer.is_valid(raise_exception=True)
-                serializers["taxlien"] = taxlien_serializer
+                for email in emails_data:
+                    email_serializer = CreateOrReadEmailSerializer(data=email)
+                    email_serializer.is_valid(raise_exception=True)
+                    email_serializer.save(owner=owner)
 
-        if auction_data:
-            auction_serializer = WriteAuctionSerializer(data=auction_data)
-            auction_serializer.is_valid(raise_exception=True)
-            serializers["auction"] = auction_serializer
-
-        if salesInformation_data:
-            sales_information_serializer = SalesInformationSerializer(data=salesInformation_data)
-            sales_information_serializer.is_valid(raise_exception=True)
-            serializers["salesInformation"] = sales_information_serializer
-
-        with transaction.atomic():
-            duplicate_check = serializers.get("duplicate").save() if "duplicate" in serializers else None
-
-            if "owner" in serializers:
-                owner = serializers["owner"].save()
-
-                for serializer in serializers.get("phones", []):
-                    serializer.save(owner=owner)
-                for serializer in serializers.get("emails", []):
-                    serializer.save(owner=owner)
-                for serializer in serializers.get("connections", []):
-                    serializer.save(owner=owner)
-
-            if "property" in serializers:
-                property = serializers["property"].save(dublicate_address=duplicate_check)
-
-                if "legalproceeding" in serializers:
-                    serializers["legalproceeding"].save(property=property)
-                if "mortgageanddebt" in serializers:
-                    serializers["mortgageanddebt"].save(property=property)
-                if "taxlien" in serializers:
-                    serializers["taxlien"].save(property=property)
-
-            auction = serializers.get("auction").save() if "auction" in serializers else None
-            sales_information = serializers.get("salesInformation").save() if "salesInformation" in serializers else None
-
-            lead_data = {
-            **data,
-            "created_by" : current_user_id
-            }
-            lead_serializer = FullLeadSerializer(data=lead_data)
-            lead_serializer.is_valid(raise_exception=True)
-            lead_serializer.save(owner = owner ,
-                                 property = property ,
-                                 sales_information = sales_information ,
-                                 auction = auction)
-
-        return Response(lead_serializer.data, status=status.HTTP_201_CREATED)
+                for connection in connections_data:
+                    connection_serializer = CreateOrReadConnectionSerializer(data=connection)
+                    connection_serializer.is_valid(raise_exception=True)
+                    connection_serializer.save(owner=owner)
 
 
+            if auction_data:
+                auction_serializer = CreateOrReadAuctionSerializer(data=auction_data)
+                auction_serializer.is_valid(raise_exception=True)
+                auction_serializer.save(lead=lead)
 
-    def get_queryset(self):
-        queryset = super().get_queryset()
-        query_params = self.request.query_params
-        filters = {}
+            if salesInformation_data:
+                sales_information_serializer = CreateOrReadSalesInformationSerializer(data=salesInformation_data)
+                sales_information_serializer.is_valid(raise_exception=True)
+                sales_information_serializer.save(lead=lead)
 
-        for key, value in query_params.items():
-            if "__" in key: 
-                filters[key] = value
-
-        if filters:
-            try:
-                queryset = queryset.filter(**filters)
-            except Exception as e:
-                raise ValidationError(f"Error applying filters: {str(e)}")
+            if lead_is_new and lead:
+                return Response(lead_serializer.data, status=status.HTTP_201_CREATED)
             
-        sort = self.request.query_params.get('sort', None)
-        if sort:
-            sort_fields = sort.split(',')
-            queryset = queryset.order_by(*sort_fields)
+            lead.updated_at = now()
+            lead.save()
+            return Response(CreateLeadSerializer(lead).data, status=status.HTTP_200_OK)
 
-        return queryset
 
-class PhoneViewSet(viewsets.ModelViewSet):
+
+class PhoneViewSet(QueryParamFilterMixin,viewsets.ModelViewSet):
     queryset = Phone.objects.all().order_by("-id")
     permission_classes = [IsAuthenticated]
     pagination_class = CustomPagination
 
     def get_serializer_class(self):
-        if self.action == 'list':
-            return SmallPhoneSerializer
-        return PhoneSerializer
+        if self.action in ['create','retrieve']:
+            return CreateOrReadPhoneSerializer
+        elif self.action in ['update','delete']:
+            return UpdateOrDeletePhoneSerializer
+        return ListPhoneSerializer
 
-class EmailViewSet(viewsets.ModelViewSet):
+class EmailViewSet(QueryParamFilterMixin,viewsets.ModelViewSet):
     queryset = Email.objects.all().order_by("-id")
     permission_classes = [IsAuthenticated]
     pagination_class = CustomPagination
 
     def get_serializer_class(self):
-        if self.action == 'list':
-            return EmailSerializer
-        return EmailSerializer
+        if self.action in ['create','retrieve']:
+            return CreateOrReadEmailSerializer
+        elif self.action in ['update','delete']:
+            return UpdateOrDeleteEmailSerializer
+        return ListEmailSerializer
 
 
 

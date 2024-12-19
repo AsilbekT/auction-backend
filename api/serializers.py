@@ -2,144 +2,243 @@ from rest_framework import serializers
 from .models import Lead, Property, Owner, LegalProceeding, Auction, SalesInformation, Connection, Phone, Email, MortgageAndDebt, TaxLien, DuplicateCheck, User
 from django.utils import timezone
 
-class UserSerializer(serializers.ModelSerializer):
+#user serializers
+class CreateOrReadUserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ['id', 'username', 'email', 'first_name', 'last_name'] 
+        fields = '__all__'
 
-class SmallPhoneSerializer(serializers.ModelSerializer):
+class UpdateOrDeleteUserSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Phone
-        fields = ['id', 'phone_number', 'phone_type']
+        model = User
+        fields = ['id']
 
-class PhoneSerializer(serializers.ModelSerializer):
+class ListUserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ['id','first_name','last_name']
+        
+#phone serializers
+class CreateOrReadPhoneSerializer(serializers.ModelSerializer):
     class Meta:
         model = Phone
         fields = '__all__'
 
-class EmailSerializer(serializers.ModelSerializer):
+class UpdateOrDeletePhoneSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Phone
+        fields = ['id']
+
+class ListPhoneSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Phone
+        fields = ['id','phone_number']
+
+ #email serializers      
+class CreateOrReadEmailSerializer(serializers.ModelSerializer):
     class Meta:
         model = Email
         fields = '__all__'
 
-
-class WriteOwnerSerializer(serializers.ModelSerializer):
+class UpdateOrDeleteEmailSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Owner
-        fields = '__all__'
+        model = Email
+        fields = ['id']
 
-class SmallOwnerSerializer(serializers.ModelSerializer):
+class ListEmailSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Owner
-        fields = ['id', 'first_name', 'last_name', 'mailing_address']
-
-class OwnerSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Owner
-        fields = '__all__'
+        model = Email
+        fields = ['id','email_address']
 
 
-class LegalProceedingSerializer(serializers.ModelSerializer):
+#legalprocceding serializers
+class CreateOrReadLegalProceedingSerializer(serializers.ModelSerializer):
     class Meta:
         model = LegalProceeding
         fields = '__all__'
 
+class UpdateOrDeleteLegalProceedingSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = LegalProceeding
+        fields = ['id']
 
-class SalesInformationSerializer(serializers.ModelSerializer):
+class ListLegalProceedingSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = LegalProceeding
+        fields = ['id','document_name']
+
+#salesinformation serializers
+class CreateOrReadSalesInformationSerializer(serializers.ModelSerializer):
     class Meta:
         model = SalesInformation
         fields = '__all__'
 
-
-
-class ReadAuctionSerializer(serializers.ModelSerializer):
+class UpdateOrDeleteSalesInformationSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Auction
-        fields = ['id', 'auction_date', 'estimated_resale_value', 'opening_bid']
+        model = SalesInformation
+        fields = ['id'] 
 
+class ListSalesInformationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = SalesInformation
+        fields = ['id','sale_date']
 
-class WriteAuctionSerializer(serializers.ModelSerializer):
+#auction serializers
+class CreateOrReadAuctionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Auction
         fields = '__all__'
 
+class UpdateOrDeleteAuctionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Auction
+        fields = ['id'] 
+        
+class ListAuctionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Auction
+        fields = ['id','auction_date']
 
-class ConnectionSerializer(serializers.ModelSerializer):
+#connection serializers
+class CreateOrReadConnectionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Connection
         fields = '__all__'
 
+class UpdateOrDeleteConnectionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Connection
+        fields = ['id'] 
 
-class MortgageAndDebtSerializer(serializers.ModelSerializer):
+class ListConnectionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Connection
+        fields = ['id','address']
+
+#mortgageanddebt serializers
+class CreateOrReadMortgageAndDebtSerializer(serializers.ModelSerializer):
     class Meta:
         model = MortgageAndDebt
         fields = '__all__'
 
+class UpdateOrDeleteMortgageAndDebtSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = MortgageAndDebt
+        fields = ['id']
 
-class TaxLienSerializer(serializers.ModelSerializer):
+class ListMortgageAndDebtSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = MortgageAndDebt
+        fields = ['id','debt']
+#taxlien serializers
+class CreateOrReadTaxLienSerializer(serializers.ModelSerializer):
     class Meta:
         model = TaxLien
         fields = '__all__'
 
+class UpdateOrDeleteTaxLienSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = TaxLien
+        fields = ['id']
 
-class DuplicateCheckSerializer(serializers.ModelSerializer):
+class ListTaxLienSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = TaxLien
+        fields = ['id','lien_amount']
+
+#duplicatecheck serializers
+class CreateOrReadDuplicateCheckSerializer(serializers.ModelSerializer):
     class Meta:
         model = DuplicateCheck
-        fields = ['id', 'reformatted_address', 'source_name', 'is_auction']
+        fields = '__all__'
 
+class UpdateOrDeleteDuplicateCheckSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = DuplicateCheck
+        fields = ['id']
+
+class ListDuplicateCheckSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = DuplicateCheck
+        fields = ['id','reformatted_address']
+
+#property serializers
 class ReadPropertySerializer(serializers.ModelSerializer):
-    dublicate_address = DuplicateCheckSerializer(read_only=True)
-
-    class Meta:
-        model = Property
-        fields = [
-            'id', 'address', 'city', 'state', 'zip_code', 'beds', 'baths',
-            'dublicate_address', 'created_at', 'updated_at'
-        ]
-
-
-class WritePropertySerializer(serializers.ModelSerializer):
-    dublicate_address = serializers.PrimaryKeyRelatedField(
-        queryset=DuplicateCheck.objects.all(),
-        required=False,
-        allow_null=True,
-        help_text="ID of the related DuplicateCheck"
-    )
-
+    tax_liens = CreateOrReadTaxLienSerializer(many=True, read_only=True,source='tax_lien_set')
+    mortgages_and_debts = CreateOrReadMortgageAndDebtSerializer(many=True, read_only=True,source='mortgages_and_debts_set')
+    legal_proceedings = CreateOrReadLegalProceedingSerializer(many=True, read_only=True,source='legal_proceeding_set')
+    duplicate_check = CreateOrReadDuplicateCheckSerializer(read_only=True,source='properties_set')
     class Meta:
         model = Property
         fields = '__all__'
 
-    def validate(self, data):
-        if data.get('dublicate_address') and not DuplicateCheck.objects.filter(id=data['dublicate_address'].id).exists():
-            raise serializers.ValidationError("Invalid DuplicateCheck ID.")
-        return data
-
-class FullPropertySerializer(serializers.ModelSerializer):
+class CreatePropertySerializer(serializers.ModelSerializer):
+    duplicate_check = CreateOrReadDuplicateCheckSerializer(read_only=True)
     class Meta:
         model = Property
         fields = '__all__'
 
-
-
-class DuplicateCheckSerializer(serializers.ModelSerializer):
+class UpdateOrDeletePropertySerializer(serializers.ModelSerializer):
     class Meta:
-        model = DuplicateCheck
+        model = Property
+        fields = ['id']
+
+class ListPropertySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Property
+        fields = ['id','address']
+
+class CreateLeadSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Lead
         fields = '__all__'
 
+class UpdateOrDeleteLeadSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Lead
+        fields = ['id']     
 
-class FullLeadSerializer(serializers.ModelSerializer):
-    sales_information = serializers.PrimaryKeyRelatedField(queryset=SalesInformation.objects.all(), required=False, allow_null=True)
-    auction = serializers.PrimaryKeyRelatedField(queryset=Auction.objects.all(), required=False, allow_null=True)
-    property = serializers.PrimaryKeyRelatedField(queryset=Property.objects.all(), required=False, allow_null=True)
-    owner = serializers.PrimaryKeyRelatedField(queryset=Owner.objects.all(), required=False, allow_null=True)
-    created_by = serializers.PrimaryKeyRelatedField(queryset=User.objects.all(),required=True)
+class ListLeadSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Lead
+        fields =  ['id', 'property','assigned_to', 'stage', 'deal_strength','created_by','created_at','updated_at']
+
+#owner
+class CreateOwnerSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Owner
+        fields = '__all__'
+
+class ReadOwnerSerializer(serializers.ModelSerializer):
+    phones = CreateOrReadPhoneSerializer(many=True, read_only=True,source="phone_set")
+    emails = CreateOrReadEmailSerializer(many=True, read_only=True,source="email_set")
+    connection = CreateOrReadConnectionSerializer(many=True, read_only=True, source='connection_set')
+    class Meta:
+        model = Owner
+        fields = '__all__'
+
+class UpdateOrDeleteOwnerSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Owner
+        fields = ['id']
+
+class ListOwnerSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Owner
+        fields = ['id','first_name','last_name']
+
+#lead serializers
+class ReadLeadSerializer(serializers.ModelSerializer):
+    sales_information = CreateOrReadSalesInformationSerializer(many=True, read_only=True)
+    auction = CreateOrReadAuctionSerializer(many=True, read_only=True)
+    property = ReadPropertySerializer(read_only=True)
+    owner = ReadOwnerSerializer(many=True, read_only=True)
+    created_by = ListUserSerializer(read_only=True)
     class Meta:
         model = Lead
         fields = '__all__'
 
     def validate(self, data):
-        # During updates, check if at least one field is provided
         if self.instance and not any(data.get(field) for field in data):
             raise serializers.ValidationError("At least one field must be provided for update.")
         return data
@@ -148,7 +247,6 @@ class FullLeadSerializer(serializers.ModelSerializer):
         return Lead.objects.create(**validated_data)
 
     def update(self, instance, validated_data):
-        print("updating")
         instance.updated_at = timezone.now()
         for attr, value in validated_data.items():
             setattr(instance, attr, value)
@@ -156,46 +254,3 @@ class FullLeadSerializer(serializers.ModelSerializer):
         return instance
 
 
-
-
-class NestedPropertySerializer(serializers.ModelSerializer):
-    tax_liens = TaxLienSerializer(many=True, read_only=True)
-    mortgages_and_debts = MortgageAndDebtSerializer(many=True, read_only=True)
-    legal_proceedings = LegalProceedingSerializer(many=True, read_only=True)
-    dublicate_address = DuplicateCheckSerializer(read_only=True)
-
-    class Meta:
-        model = Property
-        fields = '__all__'
-
-class PropertySerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Property
-        fields = ['id', 'address', 'zestimate']  
-
-class SmallLeadSerializer(serializers.ModelSerializer):
-    property = PropertySerializer(read_only=True)
-    class Meta:
-        model = Lead
-        fields = ['id', 'property','assigned_to', 'stage', 'deal_strength','created_by','created_at','updated_at']
-
-
-class NestedOwnerSerializer(serializers.ModelSerializer):
-    phones = PhoneSerializer(many=True, read_only=True,source="phone_set")
-    emails = EmailSerializer(many=True, read_only=True,source="email_set")
-    connection = ConnectionSerializer(many=True, read_only=True, source='connection_set')
-
-    class Meta:
-        model = Owner
-        fields = '__all__'
-
-
-
-class GetLeadSerializer(serializers.ModelSerializer):
-    sales_information = SalesInformationSerializer(read_only=True)
-    auction = ReadAuctionSerializer(read_only=True)
-    property = NestedPropertySerializer(read_only=True)
-    owner = NestedOwnerSerializer(read_only=True)
-    class Meta:
-        model = Lead
-        fields = '__all__'

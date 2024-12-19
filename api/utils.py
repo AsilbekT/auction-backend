@@ -4,8 +4,6 @@ from rest_framework import status
 import re
 import usaddress
 
-
-
 ordinal_map = {
     "First": "1st",
     "Second": "2nd",
@@ -221,22 +219,5 @@ def response_error(message, errors, http_status):
     }, status=http_status)
 
 
-def check_priority(new_source_name, existing_obj):
-    priority_names = {
-        "fl": 9, "asap": 8, "njcourt": 7, "salesweb": 6, "xome": 5, 
-        "realtybid": 4, "foreclosure.com": 3, "auction.com": 2, "bids": 1
-        }
-
-    # Higher number means higher priority
-    if not existing_obj:
-        return False, "No existing object provided."
-
-    existing_priority = priority_names.get(existing_obj.source_name.lower(), 0)
-    new_priority = priority_names.get(new_source_name.lower(), 0)
-
-    if new_priority > existing_priority: 
-            return True, "The address exists, but the new source has a higher priority."
-        
-    return False, "The new object was not created"
     
 

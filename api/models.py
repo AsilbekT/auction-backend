@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import User
+from django.core.exceptions import ValidationError
 
 
 class DuplicateCheck(models.Model):
@@ -34,7 +35,7 @@ class DuplicateCheck(models.Model):
         ]
 
 class Property(models.Model):
-    dublicate_address = models.ForeignKey(DuplicateCheck, on_delete=models.CASCADE, blank=True, null=True,related_name='properties')
+    duplicate_check = models.ForeignKey(DuplicateCheck, on_delete=models.CASCADE, blank=True, null=True,related_name='properties_set')
     address = models.CharField(max_length=255, help_text="The full street address of the property")
     city = models.CharField(max_length=100, blank=True, null=True, help_text="The city where the property is located")
     state = models.CharField(max_length=100, blank=True, null=True, help_text="The state where the property is located")
@@ -49,7 +50,6 @@ class Property(models.Model):
     beds = models.IntegerField(null=True,blank=True,default=0, help_text="Number of bedrooms in the property")
     baths = models.FloatField(null=True,blank=True,default=0, help_text="Number of bathrooms in the property")
     zestimate = models.DecimalField(null=True,blank=True,max_digits=10, decimal_places=2, default=0, help_text="Zillow's estimated market value for the property")
-    equity = models.DecimalField(null=True,blank=True,max_digits=12, default=0, decimal_places=2, help_text="Equity amount involved in the property")
     square_footage = models.FloatField(null=True,blank=True,default=0, help_text="Total interior square footage of the property")
     status = models.CharField(max_length=150, blank=True, null=True, help_text="what is the status of property")
     created_at = models.DateTimeField(auto_now_add=True, blank=True, null=True)
@@ -67,13 +67,28 @@ class Property(models.Model):
             models.Index(fields=['county'], name='idx_county'),
             models.Index(fields=['city', 'state'], name='idx_city_state'),
         ]
+        
 
 
     def __str__(self):
         return str(self.id)
     
 
+class Lead(models.Model):
+    property = models.ForeignKey(Property, on_delete=models.CASCADE, blank=True, null=True,related_name='lead')
+    assigned_to = models.ForeignKey(User, on_delete=models.CASCADE, blank=True, null=True , related_name='assigned_leads')
+    created_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name='created_leads')
+    stage = models.CharField(max_length=50, default="NEW",blank=True, null=True, help_text="The stage of the sales process, e.g., Initial or Follow-Up")
+    deal_strength = models.CharField(max_length=100, blank=True, null=True, help_text="An assessment of the deal strength or likelihood to close successfully")
+    created_at = models.DateTimeField(auto_now_add=True, blank=True, null=True)
+    updated_at = models.DateTimeField(auto_now=True, blank=True, null=True)
+
+    class Meta:
+        db_table = 'lead'
+
+
 class Owner(models.Model):
+    lead = models.ForeignKey(Lead, on_delete=models.CASCADE, blank=True, null=True,related_name='owner_set')
     first_name = models.CharField(max_length=100, blank=True, null=True, help_text="The first name of the property owner")
     last_name = models.CharField(max_length=100, blank=True, null=True,help_text="The last name of the property owner")
     dob = models.DateField(blank=True, null=True , help_text="Date of birth of the property owner")
@@ -97,11 +112,17 @@ class Owner(models.Model):
             models.Index(fields=['mailing_state'], name='idx_mailing_state')
         ]
 
+    def save(self, *args, **kwargs):
+        if Owner.objects.filter(lead = self.lead,first_name=self.first_name, last_name=self.last_name, dob=self.dob, mailing_zip=self.mailing_zip).exists():
+            raise ValidationError("Duplicate owner entry with the same details.")
+        super().save(*args, **kwargs)
+
     
 class LegalProceeding(models.Model):
-    property = models.ForeignKey(Property, on_delete=models.CASCADE,null=True,blank=True, related_name='legal_proceedings',  help_text="The property involved in the legal proceeding")
+    property = models.ForeignKey(Property, on_delete=models.CASCADE,null=True,blank=True, related_name='legal_proceeding_set',  help_text="The property involved in the legal proceeding")
     document_name = models.CharField(max_length=255, blank=True, null=True , help_text="The name of the legal document")
     case_type = models.CharField(max_length=150, blank=True, null=True, help_text="The type of legal case, e.g., Foreclosure or Lien")
+    case_number = models.CharField(max_length=150, blank=True, null=True, help_text="The number of legal case, e.g., Foreclosure or Lien")
     total_amount_owed = models.DecimalField(max_digits=12, default=0,null=True,blank=True, decimal_places=2, help_text="The total amount owed in the case")
     date_of_filing = models.DateField(blank=True, null=True, help_text="The date on which the legal case was filed")
     plaintiff = models.CharField(blank=True, null=True, max_length=255, help_text="The plaintiff in the legal case")
@@ -126,8 +147,20 @@ class LegalProceeding(models.Model):
             models.Index(fields=['case_type'], name='idx_case_type')
         ]
 
+    def save(self, *args, **kwargs):
+        if LegalProceeding.objects.filter(
+            property= self.property,
+            case_number=self.case_number,
+            case_type = self.case_type
+        ).exists():
+            return None
+
+        super().save(*args, **kwargs)
+  
+
 
 class Auction(models.Model):
+    lead = models.ForeignKey(Lead, on_delete=models.CASCADE, blank=True, null=True,related_name='auction_set')
     auction_date = models.DateField(blank=True, null=True, help_text="The date on which the auction will take place")
     estimated_resale_value = models.DecimalField(max_digits=12,null=True,blank=True, default=0, decimal_places=2, help_text="The estimated resale value of the property at auction")
     opening_bid = models.DecimalField(max_digits=12, default=0,null=True,blank=True, decimal_places=2, help_text="Starting bid for the auction")
@@ -142,6 +175,14 @@ class Auction(models.Model):
     def __str__(self):
         return str(self.id)
 
+    def save(self, *args, **kwargs):
+        if Auction.objects.filter(
+            lead= self.lead,
+            auction_date=self.auction_date,
+        ).exists():
+            return None
+
+        super().save(*args, **kwargs)
 
     class Meta:
         db_table = 'auctions'
@@ -150,6 +191,7 @@ class Auction(models.Model):
         indexes = [
             models.Index(fields=['auction_date'], name='idx_auction_date'),
         ]
+        
 
 class Connection(models.Model):
     ASSOCIATE = 'Associate'
@@ -161,7 +203,7 @@ class Connection(models.Model):
         (NEIGHBOR, 'Neighbor'),
     ]
 
-    owner = models.ForeignKey(Owner, on_delete=models.CASCADE,null=True,blank=True,help_text="The owner associated with this connection",related_name='owner_connections')
+    owner = models.ForeignKey(Owner, on_delete=models.CASCADE,null=True,blank=True,help_text="The owner associated with this connection",related_name='connection_set')
     connection_type = models.CharField(max_length=10, choices = CONNECTION_TYPES, help_text="The type of connection, e.g., Associate, Relative, Neighbor")
     name = models.CharField(max_length=255, help_text="Full name of the connected individual",null=True,blank=True)
     address = models.CharField(max_length=255, help_text="Address of the connected individual",null=True,blank=True)
@@ -175,12 +217,17 @@ class Connection(models.Model):
     class Meta:
         db_table = 'owner_connections' 
 
+    def save(self, *args, **kwargs):
+        if Connection.objects.filter(owner = self.owner ,name=self.name, address=self.address, phone=self.phone).exists():
+            return None
+        super().save(*args, **kwargs)
+
 
 class Phone(models.Model):
-    owner = models.ForeignKey(Owner, on_delete=models.CASCADE,null=True,blank=True, help_text="The phone record belongs to which owner",related_name='owner_phones')
+    owner = models.ForeignKey(Owner, on_delete=models.CASCADE,null=True,blank=True, help_text="The phone record belongs to which owner",related_name='phone_set')
     phone_type = models.CharField(max_length=100,null=True,blank=True,help_text="The type of phone, e.g., Mobile, Home, Work")
     phone_connected = models.BooleanField(null=True,blank=True, help_text="Indicator of whether the phone number is active and connected")
-    phone_number = models.CharField(max_length=20, help_text="The phone number")
+    phone_number = models.CharField(unique=True,max_length=20, help_text="The phone number")
     created_at = models.DateTimeField(auto_now_add=True, blank=True, null=True)
     updated_at = models.DateTimeField(auto_now=True, blank=True, null=True)
 
@@ -191,8 +238,8 @@ class Phone(models.Model):
         db_table = 'owner_phones' 
 
 class Email(models.Model):
-    owner = models.ForeignKey(Owner, on_delete=models.CASCADE,null=True,blank=True, help_text="The email record belongs to which owner",related_name='owner_emails')
-    email_address = models.EmailField(help_text="The email address")
+    owner = models.ForeignKey(Owner, on_delete=models.CASCADE,null=True,blank=True, help_text="The email record belongs to which owner",related_name='email_set')
+    email_address = models.EmailField(unique=True ,help_text="The email address")
     created_at = models.DateTimeField(auto_now_add=True, blank=True, null=True)
     updated_at = models.DateTimeField(auto_now=True, blank=True, null=True)
 
@@ -203,12 +250,13 @@ class Email(models.Model):
         db_table = 'owner_emails'
 
 class MortgageAndDebt(models.Model):
-    property = models.ForeignKey(Property, on_delete=models.CASCADE,null=True,blank=True, help_text="The property associated with this mortgage or debt", related_name='mortgages_and_debts')
+    property = models.ForeignKey(Property, on_delete=models.CASCADE,null=True,blank=True, help_text="The property associated with this mortgage or debt", related_name='mortgages_and_debts_set')
     mortgage_date = models.DateField(blank=True, null=True, help_text="The date the mortgage was registered")
     mortgage_amount = models.DecimalField(max_digits=12, default=0,null=True,blank=True, decimal_places=2, help_text="The amount of the mortgage")
-    interest_rate = models.FloatField(default=0,null=True,blank=True, help_text="The interest rate of the loan")
     loan_type = models.CharField(max_length= 255, blank=True, null=True, help_text="The type of loan, e.g., Primary, Secondary")
+    interest_rate = models.FloatField(default=0,null=True,blank=True, help_text="The interest rate of the loan")
     lender_name = models.CharField(max_length=255, blank=True, null=True, help_text="The name of the lender")
+    loan_balance =  models.FloatField(default=0,null=True,blank=True, help_text="The balance of the loan")
     debt = models.DecimalField(max_digits=12, default=0,null=True,blank=True ,decimal_places=2, help_text="The amount of the debt")
     created_at = models.DateTimeField(auto_now_add=True, blank=True, null=True)
     updated_at = models.DateTimeField(auto_now=True, blank=True, null=True)
@@ -219,8 +267,13 @@ class MortgageAndDebt(models.Model):
     class Meta:
         db_table = 'property_mortgages_debts'
 
+    def save(self, *args, **kwargs):
+        if MortgageAndDebt.objects.filter(property=self.property,debt=self.debt).exists():
+            return None
+        super().save(*args, **kwargs)
+
 class TaxLien(models.Model):
-    property = models.ForeignKey(Property, on_delete=models.CASCADE,null=True,blank=True, help_text="The property on which the tax lien is placed", related_name='tax_liens')
+    property = models.ForeignKey(Property, on_delete=models.CASCADE,null=True,blank=True, help_text="The property on which the tax lien is placed", related_name='tax_lien_set')
     lien_type = models.CharField(blank=True, null=True, max_length=150, help_text="The type of tax lien")
     lien_date = models.DateField(blank=True, null=True, help_text="The date the tax lien was placed")
     lien_amount = models.DecimalField(default=0, max_digits=12,null=True,blank=True, decimal_places=2, help_text="The amount of the lien")
@@ -235,9 +288,17 @@ class TaxLien(models.Model):
     class Meta:
         db_table = 'property_tax_liens'
 
+    def save(self, *args, **kwargs):
+        if TaxLien.objects.filter(property = self.property,lien_type=self.lien_type,
+                                  lien_date=self.lien_date, 
+                                  lien_amount=self.lien_amount).exists():
+            raise ValidationError("Duplicate taxlien entry with the same details.")
+        super().save(*args, **kwargs)
+
 
 
 class SalesInformation(models.Model):
+    lead = models.ForeignKey(Lead, on_delete=models.CASCADE, blank=True, null=True,related_name='sales_information_set')
     sale_date = models.DateField(blank=True, null=True, help_text="The date on which the sale is completed or expected to be completed")
     sold_amount = models.DecimalField(max_digits=12, default=0,null=True,blank=True, decimal_places=2, help_text="The amount for which the property was sold")
     sale_status = models.CharField(max_length=100, blank=True, null=True, help_text="The status of the sale, e.g., Pending or Closed")
@@ -251,18 +312,7 @@ class SalesInformation(models.Model):
     class Meta:
         db_table = 'sales_information' 
 
-
-class Lead(models.Model):
-    sales_information = models.ForeignKey(SalesInformation, on_delete=models.CASCADE, blank=True, null=True,related_name='lead')
-    auction = models.ForeignKey(Auction, on_delete=models.CASCADE, blank=True, null=True,related_name='lead')
-    property = models.ForeignKey(Property, on_delete=models.CASCADE, blank=True, null=True,related_name='lead')
-    owner = models.ForeignKey(Owner, models.CASCADE, blank=True, null=True,related_name='lead')
-    assigned_to = models.ForeignKey(User, on_delete=models.CASCADE, blank=True, null=True , related_name='assigned_leads')
-    created_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name='created_leads')
-    stage = models.CharField(max_length=50, default="NEW",blank=True, null=True, help_text="The stage of the sales process, e.g., Initial or Follow-Up")
-    deal_strength = models.CharField(max_length=100, blank=True, null=True, help_text="An assessment of the deal strength or likelihood to close successfully")
-    created_at = models.DateTimeField(auto_now_add=True, blank=True, null=True)
-    updated_at = models.DateTimeField(auto_now=True, blank=True, null=True)
-
-    class Meta:
-        db_table = 'lead'
+    def save(self, *args, **kwargs):
+        if SalesInformation.objects.filter(property = self.lead,sale_date=self.sale_date).exists():
+            None
+        super().save(*args, **kwargs)
