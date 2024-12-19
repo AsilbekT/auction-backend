@@ -29,7 +29,7 @@ SECRET_KEY = os.getenv('SECRET_KEY', 'askdmflasdmflasmflsamdfklms23234234234!@#$
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', 'localhost').split(',')
+ALLOWED_HOSTS = ["*"]
 
 
 REST_FRAMEWORK = {
@@ -99,6 +99,7 @@ DATABASES = {
 }
 """
 
+"""
 DATABASES = {
     'default' : {
         'ENGINE' : 'django.db.backends.postgresql',
@@ -108,6 +109,13 @@ DATABASES = {
         'HOST' : '184.72.86.114',
         'PORT' : '5432'
     }
+}
+"""
+DATABASES = { 
+    'default': { 
+    'ENGINE': 'django.db.backends.sqlite3', 
+    'NAME': BASE_DIR / "db.sqlite3", 
+    } 
 }
 
 
