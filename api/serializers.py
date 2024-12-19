@@ -2,13 +2,27 @@ from rest_framework import serializers
 from .models import Lead, Property, Owner, LegalProceeding, Auction, SalesInformation, Connection, Phone, Email, MortgageAndDebt, TaxLien, DuplicateCheck, User
 from django.utils import timezone
 
+class BaseUpdateSerializer(serializers.ModelSerializer):
+    def update(self, instance, validated_data):
+        # Fetch the data passed in the request
+        request_data = self.context['request'].data
+
+        # Update all fields on the instance using the raw request data
+        for field, value in request_data.items():
+            if hasattr(instance, field):  # Ensure the field exists in the model
+                setattr(instance, field, value)
+
+        # Save the updated instance
+        instance.save()
+        return instance
+    
 #user serializers
 class CreateOrReadUserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = '__all__'
 
-class UpdateOrDeleteUserSerializer(serializers.ModelSerializer):
+class UpdateOrDeleteUserSerializer(BaseUpdateSerializer):
     class Meta:
         model = User
         fields = ['id']
@@ -24,7 +38,7 @@ class CreateOrReadPhoneSerializer(serializers.ModelSerializer):
         model = Phone
         fields = '__all__'
 
-class UpdateOrDeletePhoneSerializer(serializers.ModelSerializer):
+class UpdateOrDeletePhoneSerializer(BaseUpdateSerializer):
     class Meta:
         model = Phone
         fields = ['id']
@@ -40,7 +54,7 @@ class CreateOrReadEmailSerializer(serializers.ModelSerializer):
         model = Email
         fields = '__all__'
 
-class UpdateOrDeleteEmailSerializer(serializers.ModelSerializer):
+class UpdateOrDeleteEmailSerializer(BaseUpdateSerializer):
     class Meta:
         model = Email
         fields = ['id']
@@ -57,7 +71,7 @@ class CreateOrReadLegalProceedingSerializer(serializers.ModelSerializer):
         model = LegalProceeding
         fields = '__all__'
 
-class UpdateOrDeleteLegalProceedingSerializer(serializers.ModelSerializer):
+class UpdateOrDeleteLegalProceedingSerializer(BaseUpdateSerializer):
     class Meta:
         model = LegalProceeding
         fields = ['id']
@@ -73,7 +87,7 @@ class CreateOrReadSalesInformationSerializer(serializers.ModelSerializer):
         model = SalesInformation
         fields = '__all__'
 
-class UpdateOrDeleteSalesInformationSerializer(serializers.ModelSerializer):
+class UpdateOrDeleteSalesInformationSerializer(BaseUpdateSerializer):
     class Meta:
         model = SalesInformation
         fields = ['id'] 
@@ -89,7 +103,7 @@ class CreateOrReadAuctionSerializer(serializers.ModelSerializer):
         model = Auction
         fields = '__all__'
 
-class UpdateOrDeleteAuctionSerializer(serializers.ModelSerializer):
+class UpdateOrDeleteAuctionSerializer(BaseUpdateSerializer):
     class Meta:
         model = Auction
         fields = ['id'] 
@@ -105,7 +119,7 @@ class CreateOrReadConnectionSerializer(serializers.ModelSerializer):
         model = Connection
         fields = '__all__'
 
-class UpdateOrDeleteConnectionSerializer(serializers.ModelSerializer):
+class UpdateOrDeleteConnectionSerializer(BaseUpdateSerializer):
     class Meta:
         model = Connection
         fields = ['id'] 
@@ -121,7 +135,7 @@ class CreateOrReadMortgageAndDebtSerializer(serializers.ModelSerializer):
         model = MortgageAndDebt
         fields = '__all__'
 
-class UpdateOrDeleteMortgageAndDebtSerializer(serializers.ModelSerializer):
+class UpdateOrDeleteMortgageAndDebtSerializer(BaseUpdateSerializer):
     class Meta:
         model = MortgageAndDebt
         fields = ['id']
@@ -136,7 +150,7 @@ class CreateOrReadTaxLienSerializer(serializers.ModelSerializer):
         model = TaxLien
         fields = '__all__'
 
-class UpdateOrDeleteTaxLienSerializer(serializers.ModelSerializer):
+class UpdateOrDeleteTaxLienSerializer(BaseUpdateSerializer):
     class Meta:
         model = TaxLien
         fields = ['id']
@@ -152,7 +166,7 @@ class CreateOrReadDuplicateCheckSerializer(serializers.ModelSerializer):
         model = DuplicateCheck
         fields = '__all__'
 
-class UpdateOrDeleteDuplicateCheckSerializer(serializers.ModelSerializer):
+class UpdateOrDeleteDuplicateCheckSerializer(BaseUpdateSerializer):
     class Meta:
         model = DuplicateCheck
         fields = ['id']
@@ -168,6 +182,13 @@ class ReadPropertySerializer(serializers.ModelSerializer):
     mortgages_and_debts = CreateOrReadMortgageAndDebtSerializer(many=True, read_only=True,source='mortgages_and_debts_set')
     legal_proceedings = CreateOrReadLegalProceedingSerializer(many=True, read_only=True,source='legal_proceeding_set')
     duplicate_check = CreateOrReadDuplicateCheckSerializer(read_only=True,source='properties_set')
+    equity = serializers.SerializerMethodField()
+
+    def get_equity(self, obj):
+        related_debt = obj.mortgages_and_debts_set.first() 
+        debt = related_debt.debt if related_debt else 0 
+        return obj.zestimate - debt
+    
     class Meta:
         model = Property
         fields = '__all__'
@@ -178,7 +199,7 @@ class CreatePropertySerializer(serializers.ModelSerializer):
         model = Property
         fields = '__all__'
 
-class UpdateOrDeletePropertySerializer(serializers.ModelSerializer):
+class UpdateOrDeletePropertySerializer(BaseUpdateSerializer):
     class Meta:
         model = Property
         fields = ['id']
@@ -193,7 +214,7 @@ class CreateLeadSerializer(serializers.ModelSerializer):
         model = Lead
         fields = '__all__'
 
-class UpdateOrDeleteLeadSerializer(serializers.ModelSerializer):
+class UpdateOrDeleteLeadSerializer(BaseUpdateSerializer):
     class Meta:
         model = Lead
         fields = ['id']     
@@ -218,7 +239,7 @@ class ReadOwnerSerializer(serializers.ModelSerializer):
         model = Owner
         fields = '__all__'
 
-class UpdateOrDeleteOwnerSerializer(serializers.ModelSerializer):
+class UpdateOrDeleteOwnerSerializer(BaseUpdateSerializer):
     class Meta:
         model = Owner
         fields = ['id']
