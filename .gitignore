@@ -18,6 +18,8 @@ api/migrations/
 api/__pycache__/
 config/settings.py
 /config/settings.py
+config/settings.py
+
 
 media/
 staticfiles/
